@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+__pycache__
+.ipynb_checkpoints
+.env
+node_modules
+frontend
+notebooks
+data
+reports
+tests
