@@ -1,0 +1,55 @@
+{
+  "model_version": "v1",
+  "algorithm": "RandomForestRegressor",
+  "trained_at": "2026-11-22",
+  "features_used": [
+    "OverallQual",
+    "GrLivArea",
+    "TotalBsmtSF",
+    "YearBuilt",
+    "Neighborhood",
+    "GarageCars",
+    "FullBath",
+    "KitchenQual",
+    "LotArea",
+    "Fireplaces"
+  ],
+  "engineered_features": [
+    "TotalSF",
+    "HouseAge"
+  ],
+  "metrics": {
+    "test_10_features": {
+      "rmsle": 0.0,
+      "mae_usd": 0.0,
+      "rmse_usd": 0.0,
+      "r2": 0.0
+    },
+    "benchmark_full_features": {
+      "rmsle": 0.0,
+      "mae_usd": 0.0,
+      "rmse_usd": 0.0,
+      "r2": 0.0
+    }
+  },
+  "interval": {
+    "method": "oof_log_residual_quantile",
+    "nominal_coverage": 0.9,
+    "q_low": -0.17,
+    "q_high": 0.16,
+    "test_coverage": 0.0
+  },
+  "explanation_method": "placeholder",
+  "split": {
+    "random_state": 42,
+    "test_size": 0.2
+  },
+  "library_versions": {
+    "python": "3.12.10",
+    "scikit-learn": "1.6.1",
+    "pandas": "2.2.3",
+    "numpy": "2.4.6",
+    "joblib": "1.6.0",
+    "shap": "0.50.0"
+  }
+}
