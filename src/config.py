@@ -1,6 +1,6 @@
 """
-Sumber kebenaran (Single Source of Truth) untuk konfigurasi proyek & fitur UI.
-Owner: Role 3 (Data Engineer) — keputusan daftar fitur final oleh Role 1.
+Sumber kebenaran tunggal (Single Source of Truth) untuk konfigurasi proyek & 10 fitur UI final.
+Owner: Role 3 (Data Engineer) — daftar fitur dikunci bersama Role 1 di Step 2.
 """
 
 from typing import Any
@@ -12,39 +12,43 @@ TEST_SIZE: float = 0.2
 MODEL_VERSION: str = "v1"
 ENGINEERED_FEATURES: list[str] = ["TotalSF", "HouseAge"]
 
-# Kandidat awal 10 fitur UI (PRD Bagian 3) — rentang & kategori dari Ames train.csv
+# 10 Fitur Final UI (sesuai keputusan Role 1 di Step 2)
 FEATURES: dict[str, dict[str, Any]] = {
     "OverallQual": {
         "type": "int",
         "min": 1,
         "max": 10,
         "default": 6,
-        "label": "Kualitas Material & Finishing Keseluruhan",
-        "help": "Skala 1 (sangat buruk) hingga 10 (sangat istimewa).",
+        "unit": "skala 1-10",
+        "label": "Kualitas Material & Finishing",
+        "help": "1 = sangat buruk, 5 = rata-rata, 10 = sangat baik",
     },
     "GrLivArea": {
-        "type": "float",
-        "min": 334.0,
-        "max": 5642.0,
-        "default": 1500.0,
-        "label": "Luas Area Tinggal di Atas Tanah (sq ft)",
-        "help": "Total luas lantai utama di atas permukaan tanah (tidak termasuk basement).",
+        "type": "int",
+        "min": 334,
+        "max": 5642,
+        "default": 1500,
+        "unit": "sq ft",
+        "label": "Luas Area Hunian di Atas Tanah",
+        "help": "Total luas semua lantai di atas tanah, tanpa basement (1 m² ≈ 10,76 sq ft)",
     },
     "TotalBsmtSF": {
-        "type": "float",
-        "min": 0.0,
-        "max": 6110.0,
-        "default": 1000.0,
-        "label": "Total Luas Basement (sq ft)",
-        "help": "Isi 0 jika rumah tidak memiliki basement.",
+        "type": "int",
+        "min": 0,
+        "max": 6110,
+        "default": 1000,
+        "unit": "sq ft",
+        "label": "Luas Basement",
+        "help": "Isi 0 jika tidak ada basement",
     },
     "YearBuilt": {
         "type": "int",
         "min": 1872,
-        "max": 2010,
+        "max": 2010,  # Dibatasi <= 2010 agar HouseAge >= 0 (PRD Bagian 3)
         "default": 2000,
+        "unit": "tahun",
         "label": "Tahun Dibangun",
-        "help": "Tahun pembangunan asli rumah (maksimal 2010 sesuai cakupan data Ames).",
+        "help": "Tahun konstruksi asli, maksimal 2010",
     },
     "Neighborhood": {
         "type": "category",
@@ -76,47 +80,54 @@ FEATURES: dict[str, dict[str, Any]] = {
             "Veenker",
         ],
         "default": "CollgCr",
-        "label": "Lokasi Lingkungan (Neighborhood)",
-        "help": "Pilih kawasan lingkungan perumahan di kota Ames, Iowa.",
+        "unit": "",
+        "label": "Lingkungan / Area",
+        "help": "Pilih area properti di kota Ames",
     },
     "GarageCars": {
         "type": "int",
         "min": 0,
         "max": 4,
         "default": 2,
-        "label": "Kapasitas Garasi (Jumlah Mobil)",
-        "help": "Jumlah mobil yang dapat ditampung garasi (isi 0 jika tidak ada garasi).",
+        "unit": "mobil",
+        "label": "Kapasitas Garasi",
+        "help": "Jumlah mobil yang muat; isi 0 jika tidak ada garasi",
     },
     "FullBath": {
         "type": "int",
         "min": 0,
         "max": 3,
         "default": 2,
-        "label": "Jumlah Kamar Mandi Utama (Full Bath)",
-        "help": "Jumlah kamar mandi lengkap di atas lantai basement.",
-    },
-    "KitchenQual": {
-        "type": "category",
-        "categories": ["Po", "Fa", "TA", "Gd", "Ex"],
-        "default": "TA",
-        "label": "Kualitas Dapur",
-        "help": "Po: Kurang, Fa: Cukup, TA: Rata-rata/Standar, Gd: Baik, Ex: Istimewa.",
+        "unit": "unit",
+        "label": "Jumlah Kamar Mandi Lengkap",
+        "help": "Kamar mandi dengan toilet, wastafel, dan shower/bak mandi di atas tanah",
     },
     "LotArea": {
-        "type": "float",
-        "min": 1300.0,
-        "max": 215245.0,
-        "default": 9500.0,
-        "label": "Luas Tanah / Kavling (sq ft)",
-        "help": "Total luas lahan properti dalam satuan square feet.",
+        "type": "int",
+        "min": 1300,
+        "max": 215245,
+        "default": 9500,
+        "unit": "sq ft",
+        "label": "Luas Tanah",
+        "help": "Luas seluruh kavling, bukan hanya bangunan",
     },
     "Fireplaces": {
         "type": "int",
         "min": 0,
         "max": 3,
         "default": 1,
-        "label": "Jumlah Perapian (Fireplaces)",
-        "help": "Jumlah perapian di dalam rumah (isi 0 jika tidak ada).",
+        "unit": "unit",
+        "label": "Jumlah Perapian",
+        "help": "Isi 0 jika tidak ada",
+    },
+    "KitchenQual": {
+        "type": "category",
+        "categories": ["Fa", "TA", "Gd", "Ex"],
+        "ordinal": True,
+        "default": "TA",
+        "unit": "",
+        "label": "Kualitas Dapur",
+        "help": "Ex = istimewa, Gd = baik, TA = rata-rata, Fa = cukup/kurang",
     },
 }
 

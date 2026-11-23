@@ -1,0 +1,141 @@
+{
+  "model_version": "v1",
+  "target": "SalePrice",
+  "ref_year": 2010,
+  "engineered_features": [
+    "TotalSF",
+    "HouseAge"
+  ],
+  "features": [
+    {
+      "name": "OverallQual",
+      "label": "Kualitas Material & Finishing",
+      "type": "int",
+      "unit": "skala 1-10",
+      "default": 6,
+      "help": "1 = sangat buruk, 5 = rata-rata, 10 = sangat baik",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "name": "GrLivArea",
+      "label": "Luas Area Hunian di Atas Tanah",
+      "type": "int",
+      "unit": "sq ft",
+      "default": 1500,
+      "help": "Total luas semua lantai di atas tanah, tanpa basement (1 m² ≈ 10,76 sq ft)",
+      "min": 334,
+      "max": 5642
+    },
+    {
+      "name": "TotalBsmtSF",
+      "label": "Luas Basement",
+      "type": "int",
+      "unit": "sq ft",
+      "default": 1000,
+      "help": "Isi 0 jika tidak ada basement",
+      "min": 0,
+      "max": 6110
+    },
+    {
+      "name": "YearBuilt",
+      "label": "Tahun Dibangun",
+      "type": "int",
+      "unit": "tahun",
+      "default": 2000,
+      "help": "Tahun konstruksi asli, maksimal 2010",
+      "min": 1872,
+      "max": 2010
+    },
+    {
+      "name": "Neighborhood",
+      "label": "Lingkungan / Area",
+      "type": "category",
+      "unit": "",
+      "default": "CollgCr",
+      "help": "Pilih area properti di kota Ames",
+      "categories": [
+        "Blmngtn",
+        "Blueste",
+        "BrDale",
+        "BrkSide",
+        "ClearCr",
+        "CollgCr",
+        "Crawfor",
+        "Edwards",
+        "Gilbert",
+        "IDOTRR",
+        "MeadowV",
+        "Mitchel",
+        "NAmes",
+        "NPkVill",
+        "NWAmes",
+        "NoRidge",
+        "NridgHt",
+        "OldTown",
+        "SWISU",
+        "Sawyer",
+        "SawyerW",
+        "Somerst",
+        "StoneBr",
+        "Timber",
+        "Veenker"
+      ]
+    },
+    {
+      "name": "GarageCars",
+      "label": "Kapasitas Garasi",
+      "type": "int",
+      "unit": "mobil",
+      "default": 2,
+      "help": "Jumlah mobil yang muat; isi 0 jika tidak ada garasi",
+      "min": 0,
+      "max": 4
+    },
+    {
+      "name": "FullBath",
+      "label": "Jumlah Kamar Mandi Lengkap",
+      "type": "int",
+      "unit": "unit",
+      "default": 2,
+      "help": "Kamar mandi dengan toilet, wastafel, dan shower/bak mandi di atas tanah",
+      "min": 0,
+      "max": 3
+    },
+    {
+      "name": "LotArea",
+      "label": "Luas Tanah",
+      "type": "int",
+      "unit": "sq ft",
+      "default": 9500,
+      "help": "Luas seluruh kavling, bukan hanya bangunan",
+      "min": 1300,
+      "max": 215245
+    },
+    {
+      "name": "Fireplaces",
+      "label": "Jumlah Perapian",
+      "type": "int",
+      "unit": "unit",
+      "default": 1,
+      "help": "Isi 0 jika tidak ada",
+      "min": 0,
+      "max": 3
+    },
+    {
+      "name": "KitchenQual",
+      "label": "Kualitas Dapur",
+      "type": "category",
+      "unit": "",
+      "default": "TA",
+      "help": "Ex = istimewa, Gd = baik, TA = rata-rata, Fa = cukup/kurang",
+      "categories": [
+        "Fa",
+        "TA",
+        "Gd",
+        "Ex"
+      ],
+      "ordinal": true
+    }
+  ]
+}
