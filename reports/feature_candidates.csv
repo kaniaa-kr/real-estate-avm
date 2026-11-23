@@ -1,0 +1,80 @@
+nama,tipe,min,max,p01,p99,kategori,n_kategori,pct_missing,ranking_importance,asosiasi_target,rf_impurity,rf_permutation,korelasi_tertinggi_dengan,korelasi_tertinggi_nilai,catatan
+OverallQual,numerik_int,1.0,10.0,3.0,10.0,,0,0.0,1,0.801,0.2282,0.106,ExterQual,0.702,redundan dengan ExterQual
+GrLivArea,numerik_int,334.0,5642.0,716.04,3203.239999999998,,0,0.0,2,0.7234,0.1541,0.113,TotRmsAbvGrd,0.824,redundan dengan TotRmsAbvGrd
+YearBuilt,numerik_int,1872.0,2010.0,1892.67,2009.0,,0,0.0,3,0.6432,0.0573,0.0181,GarageYrBlt,0.887,redundan dengan GarageYrBlt
+GarageCars,numerik_int,0.0,4.0,0.0,3.0,,0,0.0,4,0.6868,0.0402,0.015,GarageArea,0.843,redundan dengan GarageArea
+ExterQual,ordinal_kualitas,,,,,Ex|Fa|Gd|TA,4,0.0,5,0.6648,0.0828,0.0088,KitchenQual,0.723,redundan dengan KitchenQual
+BsmtQual,ordinal_kualitas,,,,,Ex|Fa|Gd|TA,4,2.4,6,0.6743,0.0274,0.0156,YearBuilt,0.766,NA bermakna -> 'None'/0; redundan dengan YearBuilt
+TotalBsmtSF,numerik_int,0.0,6110.0,0.0,2141.6099999999988,,0,0.0,7,0.595,0.0388,0.017,1stFlrSF,0.824,redundan dengan 1stFlrSF
+GarageArea,numerik_int,0.0,1418.0,0.0,976.909999999998,,0,0.0,8,0.6387,0.0332,0.0104,GarageCars,0.843,redundan dengan GarageCars
+KitchenQual,ordinal_kualitas,,,,,Ex|Fa|Gd|TA,4,0.0,9,0.6648,0.0405,0.0061,ExterQual,0.723,redundan dengan ExterQual
+1stFlrSF,numerik_int,334.0,4692.0,520.0,2199.629999999999,,0,0.0,10,0.5663,0.0321,0.0128,TotalBsmtSF,0.824,redundan dengan TotalBsmtSF
+LotArea,numerik_int,1300.0,215245.0,1680.0,41910.9799999996,,0,0.0,11,0.4636,0.0192,0.0095,LotFrontage,0.645,
+FullBath,numerik_int,0.0,3.0,1.0,3.0,,0,0.0,12,0.6256,0.0144,0.0039,GrLivArea,0.647,
+FireplaceQu,ordinal_kualitas,,,,,Ex|Fa|Gd|Po|TA,5,46.83,13,0.5329,0.0167,0.008,Fireplaces,0.891,NA bermakna -> 'None'/0; redundan dengan Fireplaces
+GarageYrBlt,numerik_float,1900.0,2010.0,1916.0,2009.0,,0,5.48,14,0.5818,0.0161,0.0027,YearBuilt,0.887,NA bermakna -> 'None'/0; redundan dengan YearBuilt
+Neighborhood,nominal,,,,,Blmngtn|Blueste|BrDale|BrkSide|ClearCr|CollgCr|Crawfor|Edwards|Gilbert|IDOTRR|MeadowV|Mitchel|NAmes|NPkVill|NWAmes|NoRidge|NridgHt|OldTown|SWISU|Sawyer|SawyerW|Somerst|StoneBr|Timber|Veenker,25,0.0,15,0.7444,0.0055,0.0022,,,
+YearRemodAdd,numerik_int,1950.0,2010.0,1950.0,2009.0,,0,0.0,16,0.5629,0.01,0.0047,GarageYrBlt,0.733,redundan dengan GarageYrBlt
+Fireplaces,numerik_int,0.0,3.0,0.0,2.0,,0,0.0,17,0.5136,0.0125,0.0059,FireplaceQu,0.891,redundan dengan FireplaceQu
+GarageType,nominal,,,,,2Types|Attchd|Basment|BuiltIn|CarPort|Detchd,6,5.48,18,0.5791,0.0069,0.0018,,,NA bermakna -> 'None'/0
+TotRmsAbvGrd,numerik_int,2.0,14.0,3.0,11.0,,0,0.0,19,0.5208,0.0077,0.0018,GrLivArea,0.824,redundan dengan GrLivArea
+CentralAir,nominal,,,,,N|Y,2,0.0,20,0.3647,0.0172,0.0049,,,
+BsmtFinSF1,numerik_int,0.0,5644.0,0.0,1583.8899999999976,,0,0.0,21,0.2704,0.0192,0.0077,BsmtFullBath,0.672,
+2ndFlrSF,numerik_int,0.0,2065.0,0.0,1426.33,,0,0.0,22,0.2862,0.014,0.0095,GrLivArea,0.641,
+MSSubClass,nominal,,,,,120|160|180|190|20|30|40|45|50|60|70|75|80|85|90,15,0.0,23,0.5788,0.0068,0.0011,,,
+GarageFinish,nominal,,,,,Fin|RFn|Unf,3,5.48,24,0.6218,0.0051,0.0011,,,NA bermakna -> 'None'/0
+LotFrontage,numerik_float,21.0,313.0,21.0,146.5,,0,18.58,25,0.3902,0.0073,0.0015,LotArea,0.645,missing murni
+OpenPorchSF,numerik_int,0.0,547.0,0.0,291.3299999999999,,0,0.0,26,0.4754,0.0048,0.0013,OverallQual,0.421,
+MSZoning,nominal,,,,,C (all)|FV|RH|RL|RM,5,0.0,27,0.3822,0.0037,0.0018,,,
+GarageCond,ordinal_kualitas,,,,,Ex|Fa|Gd|Po|TA,5,5.48,28,0.3337,0.0049,0.0016,GarageQual,0.821,NA bermakna -> 'None'/0; redundan dengan GarageQual
+HeatingQC,ordinal_kualitas,,,,,Ex|Fa|Gd|Po|TA,5,0.0,29,0.5036,0.0023,0.0011,YearRemodAdd,0.575,
+OverallCond,numerik_int,1.0,9.0,3.0,9.0,,0,0.0,30,0.124,0.0075,0.0067,YearBuilt,0.425,
+BsmtFinType1,nominal,,,,,ALQ|BLQ|GLQ|LwQ|Rec|Unf,6,2.4,31,0.4753,0.003,0.0009,,,NA bermakna -> 'None'/0
+BedroomAbvGr,numerik_int,0.0,8.0,1.0,5.0,,0,0.0,32,0.2243,0.0036,0.0015,TotRmsAbvGrd,0.666,
+Foundation,nominal,,,,,BrkTil|CBlock|PConc|Slab|Stone|Wood,6,0.0,33,0.5395,0.0025,0.0003,,,
+GarageQual,ordinal_kualitas,,,,,Ex|Fa|Gd|Po|TA,5,5.48,34,0.3481,0.0031,0.0005,GarageCond,0.821,NA bermakna -> 'None'/0; redundan dengan GarageCond
+HalfBath,numerik_int,0.0,2.0,0.0,1.0,,0,0.0,35,0.3381,0.0015,0.0013,2ndFlrSF,0.608,
+BsmtUnfSF,numerik_int,0.0,2336.0,0.0,1782.9399999999987,,0,0.0,36,0.2017,0.0055,0.0009,BsmtFinSF1,0.584,
+HouseStyle,nominal,,,,,1.5Fin|1.5Unf|1Story|2.5Fin|2.5Unf|2Story|SFoyer|SLvl,8,0.0,37,0.3289,0.0019,0.001,,,
+PavedDrive,nominal,,,,,N|P|Y,3,0.0,38,0.2979,0.0023,0.0007,,,
+Exterior2nd,nominal,,,,,AsbShng|AsphShn|Brk Cmn|BrkFace|CBlock|CmentBd|HdBoard|ImStucc|MetalSd|Other|Plywood|Stone|Stucco|VinylSd|Wd Sdng|Wd Shng,16,0.0,39,0.4207,0.0025,0.0001,,,
+BsmtExposure,nominal,,,,,Av|Gd|Mn|No,4,2.4,40,0.3794,0.002,0.0003,,,NA bermakna -> 'None'/0
+LotShape,nominal,,,,,IR1|IR2|IR3|Reg,4,0.0,41,0.2821,0.0018,0.0007,,,
+MasVnrType,nominal,,,,,BrkCmn|BrkFace|None|Stone,4,0.51,42,0.4223,0.0011,0.0004,,,missing murni
+BsmtCond,ordinal_kualitas,,,,,Fa|Gd|Po|TA,4,2.4,43,0.2663,0.0017,0.0008,BsmtQual,0.312,NA bermakna -> 'None'/0
+BsmtFullBath,numerik_int,0.0,3.0,0.0,2.0,,0,0.0,44,0.2074,0.0018,0.001,BsmtFinSF1,0.672,
+MasVnrArea,numerik_float,0.0,1378.0,0.0,764.3400000000006,,0,0.51,45,0.4045,0.0033,-0.0001,OverallQual,0.407,missing murni
+Exterior1st,nominal,,,,,AsbShng|AsphShn|BrkComm|BrkFace|CBlock|CemntBd|HdBoard|ImStucc|MetalSd|Plywood|Stone|Stucco|VinylSd|Wd Sdng|WdShing,15,0.0,46,0.4355,0.003,-0.0002,,,
+Fence,nominal,,,,,GdPrv|GdWo|MnPrv|MnWw,4,80.05,47,0.2083,0.0019,0.0004,,,NA bermakna -> 'None'/0
+WoodDeckSF,numerik_int,0.0,857.0,0.0,517.6599999999999,,0,0.0,48,0.372,0.0036,-0.0005,BsmtQual,0.32,
+BldgType,nominal,,,,,1Fam|2fmCon|Duplex|Twnhs|TwnhsE,5,0.0,49,0.2078,0.0013,0.0006,,,
+EnclosedPorch,numerik_int,0.0,552.0,0.0,264.0,,0,0.0,50,0.2358,0.0014,0.0003,YearBuilt,0.405,
+Condition1,nominal,,,,,Artery|Feedr|Norm|PosA|PosN|RRAe|RRAn|RRNe|RRNn,9,0.0,51,0.214,0.001,0.0005,,,
+Functional,nominal,,,,,Maj1|Maj2|Min1|Min2|Mod|Sev|Typ,7,0.0,52,0.1611,0.0015,0.0004,,,
+LandContour,nominal,,,,,Bnk|HLS|Low|Lvl,4,0.0,53,0.1754,0.0017,0.0001,,,
+Electrical,nominal,,,,,FuseA|FuseF|FuseP|SBrkr,4,0.09,54,0.3,0.0008,0.0001,,,missing murni
+KitchenAbvGr,numerik_int,0.0,3.0,1.0,2.0,,0,0.0,55,0.1712,0.0013,0.0003,TotRmsAbvGrd,0.237,
+BsmtFinType2,nominal,,,,,ALQ|BLQ|GLQ|LwQ|Rec|Unf,6,2.4,56,0.2219,0.0005,0.0001,,,NA bermakna -> 'None'/0
+Alley,nominal,,,,,Grvl|Pave,2,93.66,57,0.1711,0.0005,0.0002,,,NA bermakna -> 'None'/0
+ExterCond,ordinal_kualitas,,,,,Ex|Fa|Gd|Po|TA,5,0.0,58,0.006,0.0013,0.0004,OverallCond,0.323,
+RoofStyle,nominal,,,,,Flat|Gable|Gambrel|Hip|Mansard|Shed,6,0.0,59,0.2039,0.0014,-0.0002,,,
+ScreenPorch,numerik_int,0.0,480.0,0.0,271.65999999999985,,0,0.0,60,0.0976,0.0004,0.0002,Fireplaces,0.2,
+LotConfig,nominal,,,,,Corner|CulDSac|FR2|FR3|Inside,5,0.0,61,0.1562,0.0013,-0.0,,,
+LandSlope,nominal,,,,,Gtl|Mod|Sev,3,0.0,62,0.0535,0.0011,0.0,,,
+Heating,nominal,,,,,Floor|GasA|GasW|Grav|OthW|Wall,6,0.0,63,0.1949,0.0006,-0.0002,,,
+MiscFeature,nominal,,,,,Gar2|Othr|Shed|TenC,4,96.06,64,0.0917,0.0001,0.0,,,NA bermakna -> 'None'/0
+BsmtFinSF2,numerik_int,0.0,1127.0,0.0,828.9399999999987,,0,0.0,65,0.0253,0.0004,0.0001,BsmtUnfSF,0.261,
+RoofMatl,nominal,,,,,ClyTile|CompShg|Metal|Roll|Tar&Grv|WdShake|WdShngl,7,0.0,66,0.0996,0.0003,-0.0,,,
+BsmtHalfBath,numerik_int,0.0,2.0,0.0,1.0,,0,0.0,67,0.033,0.0002,0.0,BsmtFinSF2,0.148,
+Condition2,nominal,,,,,Artery|Feedr|Norm|PosA|PosN|RRAe|RRAn|RRNn,8,0.0,68,0.0988,0.0001,-0.0,,,
+3SsnPorch,numerik_int,0.0,508.0,0.0,171.95999999999913,,0,0.0,69,0.0681,0.0,0.0,LotFrontage,0.082,
+LowQualFinSF,numerik_int,0.0,572.0,0.0,275.57999999999083,,0,0.0,70,0.0549,0.0001,0.0,YearBuilt,0.138,
+PoolQC,ordinal_kualitas,,,,,Ex|Fa|Gd,3,99.49,71,0.0685,0.0,-0.0,PoolArea,1.0,NA bermakna -> 'None'/0; redundan dengan PoolArea
+PoolArea,numerik_int,0.0,738.0,0.0,0.0,,0,0.0,72,0.0685,0.0,-0.0,PoolQC,1.0,redundan dengan PoolQC
+MiscVal,numerik_int,0.0,15500.0,0.0,1166.4999999999964,,0,0.0,73,0.0396,0.0001,-0.0,OverallCond,0.106,
+Street,nominal,,,,,Grvl|Pave,2,0.0,74,0.0133,0.0,-0.0,,,
+Utilities,nominal,,,,,AllPub|NoSeWa,2,0.0,75,0.0149,0.0,-0.0,,,
+MoSold,numerik_int,1.0,12.0,1.0,12.0,,0,0.0,,0.0658,,,YrSold,0.15,transaksi: dikecualikan (kriteria #4)
+YrSold,numerik_int,2006.0,2010.0,2006.0,2010.0,,0,0.0,,0.0089,,,MoSold,0.15,transaksi: dikecualikan (kriteria #4)
+SaleType,nominal,,,,,COD|CWD|Con|ConLD|ConLI|ConLw|New|Oth|WD,9,0.0,,0.3362,,,,,transaksi: dikecualikan (kriteria #4)
+SaleCondition,nominal,,,,,Abnorml|AdjLand|Alloca|Family|Normal|Partial,6,0.0,,0.3486,,,,,transaksi: dikecualikan (kriteria #4)
