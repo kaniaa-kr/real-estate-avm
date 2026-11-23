@@ -1,0 +1,20 @@
+kolom,kelompok,n_na_latih,pct_na_latih,n_bermakna,n_missing_murni,bukti,imputasi_disarankan
+LotFrontage,Missing murni,217,18.58,0,217,tidak ada penjelasan struktural,median (numerik)
+MasVnrType,Missing murni,6,0.51,0,6,tidak ada penjelasan struktural,modus
+MasVnrArea,Missing murni,6,0.51,0,6,tidak ada penjelasan struktural,median (numerik)
+Electrical,Missing murni,1,0.09,0,1,tidak ada penjelasan struktural,modus
+PoolQC,NA bermakna,1162,99.49,1162,0,NA & PoolArea==0: 1162/1162; nilai terisi padahal PoolArea==0: 0,'None'
+MiscFeature,NA bermakna,1122,96.06,1122,0,tanpa kolom induk; mengikuti data_description,'None'
+Alley,NA bermakna,1094,93.66,1094,0,tanpa kolom induk; mengikuti data_description,'None'
+Fence,NA bermakna,935,80.05,935,0,tanpa kolom induk; mengikuti data_description,'None'
+FireplaceQu,NA bermakna,547,46.83,547,0,NA & Fireplaces==0: 547/547; nilai terisi padahal Fireplaces==0: 0,'None'
+GarageType,NA bermakna,64,5.48,64,0,NA & GarageArea==0: 64/64; nilai terisi padahal GarageArea==0: 0,'None'
+GarageFinish,NA bermakna,64,5.48,64,0,NA & GarageArea==0: 64/64; nilai terisi padahal GarageArea==0: 0,'None'
+GarageQual,NA bermakna,64,5.48,64,0,NA & GarageArea==0: 64/64; nilai terisi padahal GarageArea==0: 0,'None'
+GarageCond,NA bermakna,64,5.48,64,0,NA & GarageArea==0: 64/64; nilai terisi padahal GarageArea==0: 0,'None'
+GarageYrBlt,NA bermakna,64,5.48,64,0,NA & GarageArea==0: 64/64; nilai terisi padahal GarageArea==0: 0,0 (fasilitas tidak ada; tidak dipakai sebagai fitur UI)
+BsmtQual,NA bermakna,28,2.4,28,0,NA & TotalBsmtSF==0: 28/28; nilai terisi padahal TotalBsmtSF==0: 0,'None'
+BsmtCond,NA bermakna,28,2.4,28,0,NA & TotalBsmtSF==0: 28/28; nilai terisi padahal TotalBsmtSF==0: 0,'None'
+BsmtExposure,NA bermakna,28,2.4,28,0,NA & TotalBsmtSF==0: 28/28; nilai terisi padahal TotalBsmtSF==0: 0,'None'
+BsmtFinType1,NA bermakna,28,2.4,28,0,NA & TotalBsmtSF==0: 28/28; nilai terisi padahal TotalBsmtSF==0: 0,'None'
+BsmtFinType2,NA bermakna,28,2.4,28,0,NA & TotalBsmtSF==0: 28/28; nilai terisi padahal TotalBsmtSF==0: 0,'None'
