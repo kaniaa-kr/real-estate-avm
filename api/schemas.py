@@ -37,11 +37,15 @@ def _field_for(name: str, spec: dict[str, Any]) -> tuple[Any, Any]:
 def _build_request_model() -> type[BaseModel]:
     fields = {name: _field_for(name, spec) for name, spec in FEATURES.items()}
     example = {name: spec["default"] for name, spec in FEATURES.items() if "default" in spec}
-    return create_model(
+    model = create_model(
         "PredictRequest",
         __config__=ConfigDict(extra="forbid", json_schema_extra={"examples": [example]}),
         **fields,
     )
+    # Guard Step 2: daftar field harus persis FEATURES, tanpa tambahan manual.
+    if list(model.model_fields) != list(FEATURES):
+        raise RuntimeError("PredictRequest tidak sinkron dengan FEATURES di src/config.py")
+    return model
 
 
 # Semua fitur wajib diisi (tanpa null) dan field tambahan ditolak (extra="forbid").
