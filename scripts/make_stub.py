@@ -36,6 +36,38 @@ from src.config import (  # noqa: E402
     RANDOM_STATE,
 )
 
+def validate_feature_config() -> None:
+    """Pastikan FEATURES final valid: tepat 10 fitur dan spesifikasinya lengkap."""
+    if len(FEATURES) != 10:
+        raise ValueError(f"FEATURES harus tepat 10, ditemukan {len(FEATURES)}.")
+
+    for name, spec in FEATURES.items():
+        feature_type = spec.get("type")
+
+        if feature_type == "category":
+            categories = spec.get("categories")
+            if not categories:
+                raise ValueError(f"Kategori belum didefinisikan untuk {name}.")
+            if spec.get("default") not in categories:
+                raise ValueError(f"Default kategori {name} tidak valid.")
+
+        elif feature_type in {"int", "float"}:
+            low = spec.get("min")
+            high = spec.get("max")
+            default = spec.get("default")
+            if low is None or high is None:
+                raise ValueError(f"Rentang min/max belum lengkap untuk {name}.")
+            if low > high:
+                raise ValueError(f"Rentang fitur {name} tidak valid.")
+            if default is not None and not (low <= default <= high):
+                raise ValueError(f"Default fitur {name} di luar rentang.")
+            if feature_type == "int" and not (float(low).is_integer() and float(high).is_integer()):
+                raise ValueError(f"Rentang fitur integer {name} harus bilangan bulat.")
+
+        else:
+            raise ValueError(f"Tipe fitur tidak didukung: {name} ({feature_type}).")
+
+    print("Validasi 10 fitur final berhasil.")
 
 def _library_versions() -> dict[str, str]:
     """Return the runtime versions recorded in the stub metadata."""
@@ -190,6 +222,7 @@ def build_stub_metadata() -> dict[str, Any]:
 
 
 def main() -> None:
+    validate_feature_config()
     models_dir = ROOT / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
 

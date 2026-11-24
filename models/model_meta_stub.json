@@ -1,7 +1,7 @@
 {
   "model_version": "v1",
   "algorithm": "RandomForestRegressor",
-  "trained_at": "2026-11-22",
+  "trained_at": "2026-11-23",
   "features_used": [
     "OverallQual",
     "GrLivArea",
@@ -10,9 +10,9 @@
     "Neighborhood",
     "GarageCars",
     "FullBath",
-    "KitchenQual",
     "LotArea",
-    "Fireplaces"
+    "Fireplaces",
+    "KitchenQual"
   ],
   "engineered_features": [
     "TotalSF",
@@ -45,7 +45,7 @@
     "test_size": 0.2
   },
   "library_versions": {
-    "python": "3.12.10",
+    "python": "3.13.17",
     "scikit-learn": "1.6.1",
     "pandas": "2.2.3",
     "numpy": "2.4.6",
