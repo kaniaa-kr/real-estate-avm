@@ -107,7 +107,7 @@ button:disabled {
 .health {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   justify-self: end;
   max-width: 100%;
   padding: 8px 12px;
@@ -115,7 +115,19 @@ button:disabled {
   background: var(--paper-raised);
   color: var(--ink-soft);
   font-size: 0.8rem;
-  white-space: nowrap;
+}
+
+.health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.health-note {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .health-dot {
@@ -130,12 +142,23 @@ button:disabled {
   background: var(--accent);
 }
 
-.health-warming .health-dot {
+.health-loading .health-dot {
   background: var(--warning);
+  animation: pulse 1.4s ease-in-out infinite;
 }
 
 .health-offline .health-dot {
   background: var(--down);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .link-button {
@@ -237,6 +260,18 @@ button:disabled {
   border-bottom: 1px solid var(--rule);
 }
 
+.field-invalid .control input,
+.field-invalid .control select {
+  border-color: var(--down);
+}
+
+.field-error {
+  margin: 6px 0 0;
+  color: var(--down);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .field-head {
   display: flex;
   align-items: baseline;
@@ -287,6 +322,11 @@ button:disabled {
 .control input:hover,
 .control select:hover {
   border-color: var(--rule-strong);
+}
+
+.control input:disabled,
+.control select:disabled {
+  opacity: 0.7;
 }
 
 .control input:focus-visible,
@@ -352,6 +392,22 @@ button:disabled {
 .button-primary:disabled,
 .button-quiet:disabled {
   opacity: 0.62;
+}
+
+.form-error {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--down);
+  background: var(--down-soft);
+  color: var(--down);
+  font-size: 0.82rem;
+}
+
+.form-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 /* Result: empty and loading */
@@ -475,43 +531,48 @@ button:disabled {
 }
 
 .factor-list {
-  display: grid;
-  gap: 11px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .factor-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 3px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.factor-row:last-child {
+  border-bottom: 0;
 }
 
 .factor-name {
+  min-width: 0;
   font-size: 0.81rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .factor-value {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: 7px;
   font-size: 0.81rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.factor-track {
-  grid-column: 1 / -1;
-  height: 5px;
-  overflow: hidden;
-  background: var(--rule);
-}
-
-.factor-bar {
-  display: block;
-  height: 100%;
-  background: var(--accent);
+.factor-direction {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .factor-up .factor-value {
@@ -520,10 +581,6 @@ button:disabled {
 
 .factor-down .factor-value {
   color: var(--down);
-}
-
-.factor-down .factor-bar {
-  background: var(--down);
 }
 
 .factor-note {
@@ -573,7 +630,6 @@ button:disabled {
 
   .health {
     justify-self: start;
-    white-space: normal;
   }
 }
 
@@ -612,6 +668,11 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .health-loading .health-dot {
+    animation: none;
+    opacity: 1;
+  }
+
   .loading-bar::after {
     width: 100%;
     opacity: 0.45;

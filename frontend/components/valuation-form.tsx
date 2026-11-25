@@ -2,33 +2,32 @@
 
 import { useState, type FormEvent } from "react";
 
-import { API_URL } from "@/lib/api";
+import { useServerStatus } from "@/components/server-status-provider";
+import {
+  ApiError,
+  requestPrediction,
+  type PredictResponse,
+} from "@/lib/api";
+import { DISCLAIMER_TEXT } from "@/lib/disclaimer";
 import {
   featureLabel,
   type FeatureDefinition,
   type FeaturesConfig,
 } from "@/lib/features";
-
-interface PredictFactor {
-  feature: string;
-  impact_usd: number;
-  direction: "up" | "down";
-}
-
-interface PredictResult {
-  predicted_price: number;
-  price_range: { low: number; high: number };
-  top_factors: PredictFactor[];
-  explanation_method: string;
-  model_version: string;
-  disclaimer: string;
-}
+import {
+  initialValues,
+  toPayload,
+  validateAll,
+  validateFeature,
+  type FeatureValues,
+  type FieldErrors,
+} from "@/lib/validation";
 
 type Submission =
   | { status: "idle" }
   | { status: "submitting" }
   | { status: "error"; message: string; detail?: string }
-  | { status: "success"; result: PredictResult };
+  | { status: "success"; result: PredictResponse };
 
 const USD = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -42,83 +41,6 @@ const SIGNED_USD = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
   signDisplay: "always",
 });
-
-function defaultValues(features: FeatureDefinition[]): Record<string, string> {
-  return Object.fromEntries(
-    features.map((feature) => [feature.name, String(feature.default)]),
-  );
-}
-
-function buildPayload(
-  features: FeatureDefinition[],
-  values: Record<string, string>,
-): { payload: Record<string, number | string> } | { error: string } {
-  const payload: Record<string, number | string> = {};
-
-  for (const feature of features) {
-    const raw = values[feature.name] ?? "";
-
-    if (feature.type === "category") {
-      if (!feature.categories?.includes(raw)) {
-        return { error: `Pilih ${feature.label} dari daftar yang tersedia.` };
-      }
-      payload[feature.name] = raw;
-      continue;
-    }
-
-    const numeric = Number(raw);
-    if (raw.trim() === "" || !Number.isFinite(numeric)) {
-      return { error: `${feature.label} harus berupa angka.` };
-    }
-    if (feature.type === "int" && !Number.isInteger(numeric)) {
-      return { error: `${feature.label} harus berupa bilangan bulat.` };
-    }
-    if (feature.min !== undefined && numeric < feature.min) {
-      return { error: `${feature.label} minimal ${feature.min}.` };
-    }
-    if (feature.max !== undefined && numeric > feature.max) {
-      return { error: `${feature.label} maksimal ${feature.max}.` };
-    }
-
-    payload[feature.name] = numeric;
-  }
-
-  return { payload };
-}
-
-async function readApiError(response: Response): Promise<string | undefined> {
-  try {
-    const body = (await response.json()) as { detail?: unknown };
-    if (Array.isArray(body.detail)) {
-      const first = body.detail[0] as { loc?: unknown[]; msg?: string } | undefined;
-      if (first?.msg) {
-        const field = Array.isArray(first.loc)
-          ? first.loc.filter((part) => part !== "body").join(".")
-          : "";
-        return field ? `${field}: ${first.msg}` : first.msg;
-      }
-    }
-    if (typeof body.detail === "string") {
-      return body.detail;
-    }
-  } catch {
-    // Respons galat bukan JSON; pesan umum di bawah tetap dipakai.
-  }
-  return undefined;
-}
-
-function isPredictResult(value: unknown): value is PredictResult {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-  const result = value as Partial<PredictResult>;
-  return (
-    typeof result.predicted_price === "number" &&
-    typeof result.price_range?.low === "number" &&
-    typeof result.price_range?.high === "number" &&
-    Array.isArray(result.top_factors)
-  );
-}
 
 function methodLabel(method: string): string {
   switch (method) {
@@ -139,14 +61,9 @@ function ResultView({
   result,
   features,
 }: {
-  result: PredictResult;
+  result: PredictResponse;
   features: FeatureDefinition[];
 }) {
-  const maxImpact = Math.max(
-    ...result.top_factors.map((factor) => Math.abs(factor.impact_usd)),
-    0,
-  );
-
   return (
     <div>
       <p className="result-kicker">Estimasi harga jual</p>
@@ -161,113 +78,141 @@ function ResultView({
         <span>Metode faktor: {methodLabel(result.explanation_method)}</span>
       </div>
 
-      {result.top_factors.length > 0 ? (
-        <div className="factors">
-          <h3>Perkiraan pengaruh faktor</h3>
-          <ul className="factor-list">
-            {result.top_factors.map((factor) => {
-              const isUp = factor.direction === "up";
-              const width =
-                maxImpact > 0
-                  ? Math.max(
-                      4,
-                      Math.round((Math.abs(factor.impact_usd) / maxImpact) * 100),
-                    )
-                  : 4;
-
-              return (
+      <div className="factors">
+        <h3>Perkiraan pengaruh faktor</h3>
+        {result.top_factors.length > 0 ? (
+          <>
+            {/* Daftar sederhana dulu; grafik top_factors dikerjakan Role 2
+                di components/FactorChart.* dan akan menggantikan blok ini. */}
+            <ul className="factor-list">
+              {result.top_factors.map((factor) => (
                 <li
                   key={factor.feature}
-                  className={`factor-row ${isUp ? "factor-up" : "factor-down"}`}
+                  className={`factor-row factor-${factor.direction}`}
                 >
                   <span className="factor-name">
                     {featureLabel(factor.feature, features)}
                   </span>
                   <span className="factor-value">
                     {SIGNED_USD.format(factor.impact_usd)}
-                  </span>
-                  <span className="factor-track" aria-hidden="true">
-                    <span className="factor-bar" style={{ width: `${width}%` }} />
+                    <span className="factor-direction">
+                      {factor.direction === "up" ? "naik" : "turun"}
+                    </span>
                   </span>
                 </li>
-              );
-            })}
-          </ul>
-          <p className="factor-note">
-            Nilai ini adalah aproksimasi per fitur dan tidak menjumlah persis ke
-            selisih harga total.
+              ))}
+            </ul>
+            <p className="factor-note">
+              Nilai ini adalah aproksimasi per fitur dan tidak menjumlah persis
+              ke selisih harga total.
+            </p>
+          </>
+        ) : (
+          <p className="empty-copy">
+            Faktor penentu belum tersedia untuk estimasi ini.
           </p>
-        </div>
-      ) : null}
+        )}
+      </div>
 
-      <p className="result-disclaimer">{result.disclaimer}</p>
+      <p className="result-disclaimer">{DISCLAIMER_TEXT}</p>
     </div>
   );
 }
 
 export function ValuationForm({ config }: { config: FeaturesConfig }) {
   const features = config.features;
-  const [values, setValues] = useState<Record<string, string>>(() =>
-    defaultValues(features),
+  const { phase } = useServerStatus();
+  const serverReady = phase === "ready";
+
+  const [values, setValues] = useState<FeatureValues>(() =>
+    initialValues(features),
   );
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [formMessage, setFormMessage] = useState("");
   const [submission, setSubmission] = useState<Submission>({ status: "idle" });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const isSubmitting = submission.status === "submitting";
 
-    const built = buildPayload(features, values);
-    if ("error" in built) {
-      setSubmission({ status: "error", message: built.error });
-      return;
-    }
-
-    setSubmission({ status: "submitting" });
-
-    try {
-      const response = await fetch(`${API_URL}/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(built.payload),
-      });
-
-      if (!response.ok) {
-        const detail = await readApiError(response);
-        setSubmission({
-          status: "error",
-          message:
-            response.status === 503
-              ? "Model belum siap. Tunggu beberapa saat lalu coba lagi."
-              : "Permintaan ditolak API. Periksa kembali nilai pada form.",
-          detail,
-        });
-        return;
+  function setFieldError(feature: FeatureDefinition, raw: string) {
+    const message = validateFeature(feature, raw);
+    setErrors((current) => {
+      const next = { ...current };
+      if (message) {
+        next[feature.name] = message;
+      } else {
+        delete next[feature.name];
       }
+      return next;
+    });
+  }
 
-      const body: unknown = await response.json();
-      if (!isPredictResult(body)) {
-        setSubmission({
-          status: "error",
-          message: "Respons API tidak sesuai kontrak yang diharapkan.",
-        });
-        return;
-      }
-
-      setSubmission({ status: "success", result: body });
-    } catch {
-      setSubmission({
-        status: "error",
-        message:
-          "Tidak dapat menghubungi API. Pastikan layanan berjalan lalu coba lagi.",
-      });
+  function handleChange(feature: FeatureDefinition, raw: string) {
+    setValues((current) => ({ ...current, [feature.name]: raw }));
+    setFormMessage("");
+    // Jangan berteriak saat pengguna baru mulai mengisi; validasi setelah
+    // kolom disentuh atau setelah ada galat yang sedang tampil.
+    if (touched[feature.name] || errors[feature.name]) {
+      setFieldError(feature, raw);
     }
+  }
+
+  function handleBlur(feature: FeatureDefinition, raw: string) {
+    setTouched((current) => ({ ...current, [feature.name]: true }));
+    setFieldError(feature, raw);
   }
 
   function handleReset() {
-    setValues(defaultValues(features));
+    setValues(initialValues(features));
+    setErrors({});
+    setTouched({});
+    setFormMessage("");
     setSubmission({ status: "idle" });
   }
 
-  const isSubmitting = submission.status === "submitting";
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isSubmitting || !serverReady) {
+      return;
+    }
+
+    const nextErrors = validateAll(features, values);
+    const invalidCount = Object.keys(nextErrors).length;
+    if (invalidCount > 0) {
+      setErrors(nextErrors);
+      setTouched(
+        Object.fromEntries(features.map((feature) => [feature.name, true])),
+      );
+      setFormMessage(`Periksa ${invalidCount} kolom yang ditandai.`);
+      const firstInvalid = features.find((feature) => nextErrors[feature.name]);
+      if (firstInvalid) {
+        document.getElementById(`feature-${firstInvalid.name}`)?.focus();
+      }
+      return;
+    }
+
+    setErrors({});
+    setFormMessage("");
+    setSubmission({ status: "submitting" });
+
+    try {
+      const result = await requestPrediction(toPayload(features, values));
+      setSubmission({ status: "success", result });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmission({
+          status: "error",
+          message: error.message,
+          detail: error.detail,
+        });
+      } else {
+        setSubmission({
+          status: "error",
+          message: "Terjadi kesalahan tak terduga. Coba lagi.",
+        });
+      }
+    }
+  }
 
   return (
     <div className="workspace">
@@ -277,14 +222,21 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
           <p>{features.length} fitur input</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="field-grid">
             {features.map((feature, index) => {
               const id = `feature-${feature.name}`;
               const helpId = `${id}-help`;
+              const errorId = `${id}-error`;
+              const error = errors[feature.name];
+              const describedBy = error ? `${helpId} ${errorId}` : helpId;
+              const value = values[feature.name] ?? "";
 
               return (
-                <div className="field" key={feature.name}>
+                <div
+                  className={`field${error ? " field-invalid" : ""}`}
+                  key={feature.name}
+                >
                   <div className="field-head">
                     <label htmlFor={id}>{feature.label}</label>
                     <span className="field-no" aria-hidden="true">
@@ -297,16 +249,21 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
                       <select
                         id={id}
                         name={feature.name}
-                        value={values[feature.name]}
+                        value={value}
                         onChange={(event) =>
-                          setValues((current) => ({
-                            ...current,
-                            [feature.name]: event.target.value,
-                          }))
+                          handleChange(feature, event.target.value)
                         }
-                        aria-describedby={helpId}
+                        onBlur={(event) =>
+                          handleBlur(feature, event.target.value)
+                        }
+                        aria-describedby={describedBy}
+                        aria-invalid={Boolean(error)}
+                        disabled={isSubmitting}
                         required
                       >
+                        <option value="" disabled>
+                          Pilih {feature.label.toLowerCase()}
+                        </option>
                         {feature.categories?.map((category) => (
                           <option key={category} value={category}>
                             {category}
@@ -318,18 +275,22 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
                         id={id}
                         name={feature.name}
                         type="number"
-                        inputMode={feature.type === "int" ? "numeric" : "decimal"}
+                        inputMode={
+                          feature.type === "int" ? "numeric" : "decimal"
+                        }
                         step={feature.type === "int" ? 1 : "any"}
                         min={feature.min}
                         max={feature.max}
-                        value={values[feature.name]}
+                        value={value}
                         onChange={(event) =>
-                          setValues((current) => ({
-                            ...current,
-                            [feature.name]: event.target.value,
-                          }))
+                          handleChange(feature, event.target.value)
                         }
-                        aria-describedby={helpId}
+                        onBlur={(event) =>
+                          handleBlur(feature, event.target.value)
+                        }
+                        aria-describedby={describedBy}
+                        aria-invalid={Boolean(error)}
+                        disabled={isSubmitting}
                         required
                       />
                     )}
@@ -338,6 +299,11 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
                     ) : null}
                   </div>
 
+                  {error ? (
+                    <p className="field-error" id={errorId}>
+                      {error}
+                    </p>
+                  ) : null}
                   <p className="help" id={helpId}>
                     {feature.help}
                   </p>
@@ -347,7 +313,11 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="button-primary" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={isSubmitting || !serverReady}
+            >
               {isSubmitting ? "Menghitung estimasi..." : "Hitung estimasi harga"}
             </button>
             <button
@@ -359,6 +329,20 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
               Kembalikan nilai awal
             </button>
           </div>
+
+          {formMessage ? (
+            <p className="form-error" role="alert">
+              {formMessage}
+            </p>
+          ) : null}
+
+          {!serverReady ? (
+            <p className="form-hint">
+              {phase === "loading"
+                ? "Tombol aktif setelah server selesai memuat model."
+                : 'Server belum merespons. Gunakan tombol "Coba lagi" pada status server di atas.'}
+            </p>
+          ) : null}
         </form>
       </section>
 
