@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend AVM Ames (Next.js)
 
-## Getting Started
+Halaman tunggal untuk prototipe **Automated Valuation Model** rumah Ames, Iowa
+(2006–2010). Form 10 fitur dibangun otomatis dari
+[`public/features.json`](./public/features.json) — berkas itu dihasilkan oleh
+`scripts/export_config.py` dari `src/config.py` dan **tidak boleh diedit manual**.
 
-First, run the development server:
+## Menjalankan
+
+Dari folder `frontend/`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # sekali saja
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`NEXT_PUBLIC_API_URL` menunjuk ke API FastAPI (default `http://localhost:8000`
+untuk pengembangan lokal). Di Vercel, isi variabel ini dengan URL API publik
+(tanpa slash di akhir) sebelum deploy.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+API lokal dijalankan dari **root repo**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+uvicorn api.main:app --reload --port 8000
+```
 
-## Learn More
+## Perilaku halaman
 
-To learn more about Next.js, take a look at the following resources:
+- Saat dibuka, halaman memanggil `GET /health` dan menampilkan
+  **"Server sedang memuat..."** sampai model termuat. Pengecekan diulang tiap
+  3 detik (maksimal ±60 detik) untuk mengakomodasi cold start free tier, lalu
+  tombol submit aktif. Jika gagal, tersedia tombol **Coba lagi**.
+- Form memvalidasi setiap kolom di klien memakai label, rentang, dan kategori
+  dari `features.json`; pesan galat tampil inline dan fokus berpindah ke kolom
+  pertama yang salah.
+- Submit memanggil `POST /predict` dan menampilkan harga, rentang prediksi,
+  serta daftar sederhana `top_factors` (label Indonesia untuk fitur turunan
+  seperti `TotalSF` dan `HouseAge`). Grafik faktor akan dibuat Role 2 di
+  `components/FactorChart.*`.
+- Banner disclaimer dari PRD selalu tampil di halaman.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Perintah lain
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run lint     # ESLint
+npx tsc --noEmit # cek tipe
+npm run build    # build produksi
+```
 
-## Deploy on Vercel
+Struktur utama:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/page.tsx                        # halaman tunggal + banner disclaimer
+components/server-status-provider.tsx  # polling /health (context warm-up)
+components/health-status.tsx        # indikator status server
+components/valuation-form.tsx       # form, validasi klien, hasil prediksi
+lib/api.ts                          # tipe & pemanggilan /health dan /predict
+lib/features.ts                     # pemuat features.json (satu sumber konfigurasi)
+lib/validation.ts                   # validasi nilai form
+lib/disclaimer.ts                   # teks disclaimer baku PRD
+```
