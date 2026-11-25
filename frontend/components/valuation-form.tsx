@@ -47,6 +47,7 @@ function methodLabel(method: string): string {
     case "shap_tree":
       return "SHAP TreeExplainer";
     case "linear":
+    case "linear_coef":
       return "Kontribusi linear";
     case "ablation":
       return "Ablation";
