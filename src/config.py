@@ -1,8 +1,3 @@
-"""
-Sumber kebenaran tunggal (Single Source of Truth) untuk konfigurasi proyek & 10 fitur UI final.
-Owner: Role 3 (Data Engineer) — daftar fitur dikunci bersama Role 1 di Step 2.
-"""
-
 from typing import Any
 
 TARGET: str = "SalePrice"
