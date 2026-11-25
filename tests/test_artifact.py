@@ -12,6 +12,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from src.config import RANDOM_STATE, TEST_SIZE  # noqa: E402
 from src.evaluation import ui_columns  # noqa: E402
 
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", "models/model_pipeline_stub.joblib"))
@@ -80,3 +81,21 @@ def test_meta_matches_requirements_versions():
     for lib, ver in meta["library_versions"].items():
         if lib.lower() in pins:
             assert pins[lib.lower()] == ver, f"{lib}: meta={ver} vs requirements={pins[lib.lower()]}"
+
+
+def test_meta_matches_api_contract():
+    """Meta v1 harus lolos ModelInfoResponse dan sesuai skema PRD Bagian 5."""
+    meta_path = ROOT / "models" / "model_meta_v1.json"
+    if "v1" not in MODEL_PATH.name or not meta_path.exists():
+        pytest.skip("Hanya untuk model asli v1.")
+    from api.schemas import ModelInfoResponse
+
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    ModelInfoResponse(**meta)
+    assert set(meta["metrics"]) == {"test_10_features", "benchmark_full_features"}
+    for name, payload in meta["metrics"].items():
+        assert set(payload) == {"rmsle", "mae_usd", "rmse_usd", "r2"}, name
+    assert "python" in meta["library_versions"], "versi Python wajib dicatat (AGENTS.md 2.7)"
+    assert meta["interval"]["method"] == "oof_log_residual_quantile"
+    assert 0 < meta["interval"]["nominal_coverage"] <= 1
+    assert meta["split"] == {"random_state": RANDOM_STATE, "test_size": TEST_SIZE}
