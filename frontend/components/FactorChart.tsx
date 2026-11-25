@@ -1,40 +1,32 @@
-import * as React from "react";
+import type { PredictFactor } from "@/lib/api";
+import { featureLabel, featuresConfig } from "@/lib/features";
 
-export type Direction = "up" | "down";
-export interface TopFactor {
-  feature: string;
-  impact_usd: number;
-  direction: Direction;
-}
 export interface FactorChartProps {
-  factors: TopFactor[];
-  /** Pemetaan nama kolom -> label UI, mis. dari public/features.json. Label manual untuk fitur rekayasa sudah tersedia. */
+  factors: PredictFactor[];
+  /** Override label per kolom; default memakai label dari public/features.json. */
   labels?: Record<string, string>;
   maxItems?: number;
 }
 
-const ENGINEERED_LABELS: Record<string, string> = {
-  TotalSF: "Total luas bangunan + basement",
-  HouseAge: "Usia rumah",
-};
-const COLOR_UP = "#008300"; // hijau
-const COLOR_DOWN = "#eb6834"; // jingga
+const COLOR_UP = "var(--accent)"; // hijau: menaikkan harga
+const COLOR_DOWN = "var(--down)"; // merah: menurunkan harga
 const usd = (v: number) =>
   `${v < 0 ? "−" : "+"}$${Math.abs(Math.round(v)).toLocaleString("en-US")}`;
 
-/** Batang horizontal berpusat di nol: kanan (hijau, ▲) menaikkan harga, kiri (jingga, ▼) menurunkan. Tanpa dependensi. */
+/** Batang horizontal berpusat di nol: kanan (hijau, ▲) menaikkan harga, kiri (merah, ▼) menurunkan. Tanpa dependensi. */
 export default function FactorChart({ factors, labels = {}, maxItems = 5 }: FactorChartProps) {
   const rows = [...factors]
     .sort((a, b) => Math.abs(b.impact_usd) - Math.abs(a.impact_usd))
     .slice(0, maxItems);
   if (rows.length === 0) return null;
   const maxAbs = Math.max(...rows.map((r) => Math.abs(r.impact_usd)), 1);
-  const label = (f: string) => labels[f] ?? ENGINEERED_LABELS[f] ?? f;
+  const label = (f: string) =>
+    labels[f] ?? featureLabel(f, featuresConfig.features);
 
   return (
-    <figure style={{ margin: 0, fontFamily: "system-ui, sans-serif", color: "#0b0b0b" }}>
+    <figure style={{ margin: 0, fontFamily: "var(--sans)", color: "var(--ink)" }}>
       <figcaption style={{ fontWeight: 600, marginBottom: 2 }}>Faktor penentu harga</figcaption>
-      <p style={{ margin: "0 0 12px", fontSize: 13, color: "#52514e" }}>
+      <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--muted)" }}>
         Perkiraan pengaruh tiap fitur terhadap taksiran ini, dalam USD.
       </p>
       <div role="list" aria-label="Faktor penentu harga">
@@ -51,7 +43,7 @@ export default function FactorChart({ factors, labels = {}, maxItems = 5 }: Fact
               <span style={{ fontSize: 14, textAlign: "right" }}>{label(r.feature)}</span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center", height: 26 }}>
                 {/* sisi kiri = turun, sisi kanan = naik; garis nol di tengah */}
-                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", borderRight: "2px solid #8a8984", height: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", borderRight: "2px solid var(--rule-strong)", height: "100%" }}>
                   {!up && (
                     <>
                       <span style={{ fontSize: 12, marginRight: 6, whiteSpace: "nowrap" }}>▼ {usd(-Math.abs(r.impact_usd))}</span>
@@ -72,7 +64,7 @@ export default function FactorChart({ factors, labels = {}, maxItems = 5 }: Fact
           );
         })}
       </div>
-      <p style={{ margin: "10px 0 0", fontSize: 12, color: "#52514e" }}>
+      <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--muted)" }}>
         <span style={{ color: COLOR_DOWN }}>■</span> menurunkan harga · <span style={{ color: COLOR_UP }}>■</span> menaikkan harga
       </p>
     </figure>
