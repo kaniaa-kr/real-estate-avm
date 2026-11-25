@@ -1,11 +1,8 @@
 {
   "model_version": "v1",
-  "trained_at": "2026-11-25T11:47:31+00:00",
-  "model_name": "Ridge",
-  "best_params": {
-    "model__alpha": 3.1622776601683795
-  },
-  "features": [
+  "algorithm": "Ridge",
+  "trained_at": "2026-11-25T16:03:52+00:00",
+  "features_used": [
     "OverallQual",
     "GrLivArea",
     "TotalBsmtSF",
@@ -21,103 +18,38 @@
     "TotalSF",
     "HouseAge"
   ],
-  "target_transform": "log1p",
-  "random_state": 42,
-  "test_size": 0.2,
-  "n_train": 1166,
-  "n_test": 292,
-  "metrics": [
-    {
-      "Model": "Lasso",
-      "Skenario": "1 (fitur penuh)",
-      "RMSLE (CV)": 0.109,
-      "RMSLE (Test)": 0.1256,
-      "MAE (USD)": 14034,
-      "RMSE (USD)": 22152,
-      "R2": 0.936
+  "metrics": {
+    "test_10_features": {
+      "rmsle": 0.15,
+      "mae_usd": 18063,
+      "rmse_usd": 29256,
+      "r2": 0.8884
     },
-    {
-      "Model": "OLS",
-      "Skenario": "1 (fitur penuh)",
-      "RMSLE (CV)": 0.1291,
-      "RMSLE (Test)": 0.1203,
-      "MAE (USD)": 14105,
-      "RMSE (USD)": 21337,
-      "R2": 0.9406
-    },
-    {
-      "Model": "Random Forest",
-      "Skenario": "1 (fitur penuh)",
-      "RMSLE (CV)": 0.1312,
-      "RMSLE (Test)": 0.1441,
-      "MAE (USD)": 16656,
-      "RMSE (USD)": 27851,
-      "R2": 0.8989
-    },
-    {
-      "Model": "Ridge",
-      "Skenario": "1 (fitur penuh)",
-      "RMSLE (CV)": 0.1092,
-      "RMSLE (Test)": 0.1254,
-      "MAE (USD)": 14167,
-      "RMSE (USD)": 22110,
-      "R2": 0.9363
-    },
-    {
-      "Model": "Lasso",
-      "Skenario": "2 (10 fitur)",
-      "RMSLE (CV)": 0.1343,
-      "RMSLE (Test)": 0.1499,
-      "MAE (USD)": 18066,
-      "RMSE (USD)": 29241,
-      "R2": 0.8885
-    },
-    {
-      "Model": "OLS",
-      "Skenario": "2 (10 fitur)",
-      "RMSLE (CV)": 0.1343,
-      "RMSLE (Test)": 0.1499,
-      "MAE (USD)": 18079,
-      "RMSE (USD)": 29222,
-      "R2": 0.8887
-    },
-    {
-      "Model": "Random Forest",
-      "Skenario": "2 (10 fitur)",
-      "RMSLE (CV)": 0.1419,
-      "RMSLE (Test)": 0.1548,
-      "MAE (USD)": 17217,
-      "RMSE (USD)": 27177,
-      "R2": 0.9037
-    },
-    {
-      "Model": "Ridge",
-      "Skenario": "2 (10 fitur)",
-      "RMSLE (CV)": 0.1341,
-      "RMSLE (Test)": 0.15,
-      "MAE (USD)": 18063,
-      "RMSE (USD)": 29256,
-      "R2": 0.8884
+    "benchmark_full_features": {
+      "rmsle": 0.1256,
+      "mae_usd": 14034,
+      "rmse_usd": 22152,
+      "r2": 0.936
     }
-  ],
+  },
   "interval": {
-    "method": "oof_residual_quantiles_log",
-    "percentiles": [
-      5,
-      95
-    ],
+    "method": "oof_log_residual_quantile",
+    "nominal_coverage": 0.9,
     "q_low": -0.20929642722291097,
-    "q_high": 0.19238363046830864,
-    "test_coverage": 0.8767123287671232,
-    "target_coverage": 0.8
+    "q_high": 0.19238363046831042,
+    "test_coverage": 0.8767123287671232
   },
   "explanation_method": "linear_coef",
+  "split": {
+    "random_state": 42,
+    "test_size": 0.2
+  },
   "library_versions": {
+    "python": "3.13.13",
     "scikit-learn": "1.6.1",
     "pandas": "2.2.3",
     "numpy": "2.4.6",
     "joblib": "1.6.0",
     "shap": "0.50.0"
-  },
-  "disclaimer": "Estimasi akademik berbasis data pasar Ames, Iowa (2006-2010). Tidak mencerminkan harga pasar saat ini."
+  }
 }
