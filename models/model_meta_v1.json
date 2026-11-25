@@ -1,0 +1,55 @@
+{
+  "model_version": "v1",
+  "algorithm": "Ridge",
+  "trained_at": "2026-11-25T16:03:52+00:00",
+  "features_used": [
+    "OverallQual",
+    "GrLivArea",
+    "TotalBsmtSF",
+    "YearBuilt",
+    "Neighborhood",
+    "GarageCars",
+    "FullBath",
+    "LotArea",
+    "Fireplaces",
+    "KitchenQual"
+  ],
+  "engineered_features": [
+    "TotalSF",
+    "HouseAge"
+  ],
+  "metrics": {
+    "test_10_features": {
+      "rmsle": 0.15,
+      "mae_usd": 18063,
+      "rmse_usd": 29256,
+      "r2": 0.8884
+    },
+    "benchmark_full_features": {
+      "rmsle": 0.1256,
+      "mae_usd": 14034,
+      "rmse_usd": 22152,
+      "r2": 0.936
+    }
+  },
+  "interval": {
+    "method": "oof_log_residual_quantile",
+    "nominal_coverage": 0.9,
+    "q_low": -0.20929642722291097,
+    "q_high": 0.19238363046831042,
+    "test_coverage": 0.8767123287671232
+  },
+  "explanation_method": "linear_coef",
+  "split": {
+    "random_state": 42,
+    "test_size": 0.2
+  },
+  "library_versions": {
+    "python": "3.13.13",
+    "scikit-learn": "1.6.1",
+    "pandas": "2.2.3",
+    "numpy": "2.4.6",
+    "joblib": "1.6.0",
+    "shap": "0.50.0"
+  }
+}
