@@ -134,9 +134,14 @@ Setelah domain frontend produksi diketahui:
   `shap` untuk Colab/CI); model produksi Ridge memakai `linear_coef`, jadi
   `shap` tidak diimpor saat inference. Cold start pertama bisa lebih lama —
   UI sudah menampilkan status "memuat...".
-- **`.vercelignore`** membuang `frontend/`, `notebooks/`, `data/`, `tests/`,
-  `reports/`, `.git/`, `.venv/`, dan `__pycache__/` dari bundle backend.
-  `api/`, `src/`, `models/`, dan `requirements.txt` tetap ikut.
+- **`.vercelignore` (root)** membuang `frontend/`, `notebooks/`, `data/`,
+  `tests/`, `reports/`, `.git/`, `.venv/`, dan `__pycache__/` dari bundle
+  backend. `api/`, `src/`, `models/`, dan `requirements.txt` tetap ikut.
+- **`frontend/.vercelignore` wajib ada.** Di monorepo, Vercel memakai
+  `.vercelignore` milik root project (di sini `frontend/`) lebih dulu. Tanpa
+  file itu, Vercel memakai `.vercelignore` root repo yang membuang `frontend/`
+  untuk backend — akibatnya build frontend tidak menemukan `app/` dan hanya
+  menghasilkan route `/404` (halaman "This page doesn't exist").
 - **`.python-version`** mengunci Python `3.13`, sama dengan versi training
   (lihat `library_versions.python` di `models/model_meta_v1.json`).
 - **`frontend/vercel.json`** menetapkan `"framework": "nextjs"` agar project
@@ -155,6 +160,7 @@ Setelah domain frontend produksi diketahui:
 | Gejala | Penyebab umum | Solusi |
 | :--- | :--- | :--- |
 | `404 NOT_FOUND` di `/health` | Framework Preset bukan FastAPI, atau `vercel.json` lama masih memakai `builds`/`routes` | Pastikan `vercel.json` versi baru ter-commit dan Framework Preset = FastAPI |
+| Frontend menampilkan "This page doesn't exist" / build hanya menghasilkan route `/404` | Project frontend memakai `.vercelignore` root repo yang membuang `frontend/` | Pastikan `frontend/.vercelignore` ada dan ter-commit, lalu redeploy |
 | `FASTAPI_ENTRYPOINT_NOT_FOUND` di project frontend | Root Directory project frontend masih `./`, sehingga Vercel memakai `vercel.json` root | Set Root Directory = `frontend` lalu redeploy |
 | `LAMBDA_SIZE_EXCEEDED` (260 MB > 225 MB) | Ada `installCommand` kustom yang mematikan optimizer Vercel | Hapus `installCommand` dari `vercel.json`; biarkan Vercel memakai runtime dependency install |
 | `/health` → `model_loaded:false` | `MODEL_PATH`/`META_PATH` salah atau artefak tidak ter-upload | Cek env dan `.vercelignore`; lihat Runtime Logs |
