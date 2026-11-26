@@ -93,8 +93,9 @@ apakah `MODEL_PATH`/`META_PATH` salah atau artefak tidak ikut ter-bundle.
 ## 3. Deploy Project 2 — Frontend
 
 1. **Add New Project** → import repo yang sama.
-2. **Root Directory**: `frontend`.
-3. **Framework Preset**: `Next.js`.
+2. **Root Directory**: `frontend` (wajib; jangan `./`).
+3. **Framework Preset**: `Next.js`. `frontend/vercel.json` juga menetapkan
+   `"framework": "nextjs"` agar tidak pernah memakai preset FastAPI.
 4. **Environment Variables**:
    - `NEXT_PUBLIC_API_URL` = domain Project 1, mis. `https://avm-api.vercel.app`
      (tanpa slash di akhir)
@@ -124,16 +125,24 @@ Setelah domain frontend produksi diketahui:
   `"framework": "fastapi"`, Vercel mendeteksi `api/main.py` (salah satu lokasi
   entrypoint yang didukung) dan meneruskan **path asli** ke aplikasi. Itulah yang
   membuat semua route FastAPI bekerja.
-- **`installCommand`** menjalankan `pip install -r requirements.txt` lalu
-  mencopot `shap`/`numba`/`llvmlite`. Model produksi adalah Ridge
-  (`explanation_method: linear_coef`), jadi `shap` tidak dipakai saat inference.
-  Ini memangkas ratusan MB dari bundle Vercel tanpa mengubah `requirements.txt`
-  yang tetap dipakai Colab/CI.
+- **Tidak ada `installCommand` kustom di `vercel.json`.** Ini disengaja. Dengan
+  install command kustom, Vercel tidak boleh memakai *runtime dependency
+  install* sehingga seluruh isi virtualenv ikut di-bundle dan melewati batas
+  fungsi 225 MB (`LAMBDA_SIZE_EXCEEDED`). Tanpa install command kustom, Vercel
+  mengoptimalkan sendiri: paket publik dipasang saat cold start ke `/tmp`,
+  sehingga zip fungsi tetap kecil. `requirements.txt` tetap utuh (termasuk
+  `shap` untuk Colab/CI); model produksi Ridge memakai `linear_coef`, jadi
+  `shap` tidak diimpor saat inference. Cold start pertama bisa lebih lama —
+  UI sudah menampilkan status "memuat...".
 - **`.vercelignore`** membuang `frontend/`, `notebooks/`, `data/`, `tests/`,
   `reports/`, `.git/`, `.venv/`, dan `__pycache__/` dari bundle backend.
   `api/`, `src/`, `models/`, dan `requirements.txt` tetap ikut.
 - **`.python-version`** mengunci Python `3.13`, sama dengan versi training
   (lihat `library_versions.python` di `models/model_meta_v1.json`).
+- **`frontend/vercel.json`** menetapkan `"framework": "nextjs"` agar project
+  frontend tidak pernah mencoba build FastAPI. Root Directory project frontend
+  **wajib** `frontend`; kalau dibiarkan `./`, Vercel membaca `vercel.json` root
+  (FastAPI) dan gagal dengan `FASTAPI_ENTRYPOINT_NOT_FOUND`.
 - **`api/main.py`** menambahkan root repo ke `sys.path` sebelum import
   `api.*`/`src.*`, mengimpor `src.features`/`src.preprocessing` sebelum
   `joblib.load()`, memakai `src.explainer.explain()` untuk `top_factors`, dan
@@ -146,10 +155,12 @@ Setelah domain frontend produksi diketahui:
 | Gejala | Penyebab umum | Solusi |
 | :--- | :--- | :--- |
 | `404 NOT_FOUND` di `/health` | Framework Preset bukan FastAPI, atau `vercel.json` lama masih memakai `builds`/`routes` | Pastikan `vercel.json` versi baru ter-commit dan Framework Preset = FastAPI |
+| `FASTAPI_ENTRYPOINT_NOT_FOUND` di project frontend | Root Directory project frontend masih `./`, sehingga Vercel memakai `vercel.json` root | Set Root Directory = `frontend` lalu redeploy |
+| `LAMBDA_SIZE_EXCEEDED` (260 MB > 225 MB) | Ada `installCommand` kustom yang mematikan optimizer Vercel | Hapus `installCommand` dari `vercel.json`; biarkan Vercel memakai runtime dependency install |
 | `/health` → `model_loaded:false` | `MODEL_PATH`/`META_PATH` salah atau artefak tidak ter-upload | Cek env dan `.vercelignore`; lihat Runtime Logs |
 | `503` di `/predict` | Model gagal dimuat (versi library/path) | Cek log `Gagal memuat model`; pastikan versi Python 3.13 dan artefak v1 |
 | Galat CORS di browser | `ALLOWED_ORIGINS` belum memuat domain frontend | Set domain frontend lalu redeploy backend |
-| Build gagal karena ukuran fungsi | Dependensi berat ikut ter-bundle | Pastikan `installCommand` di `vercel.json` dipakai dan `shap` tercopot |
+| Build gagal karena ukuran fungsi | Dependensi berat ikut ter-bundle karena `installCommand` kustom | Hapus `installCommand`; cek `excludeFiles` dan pastikan tidak ada paket training di `requirements.txt` |
 | Cold start lama | Fungsi pertama kali dimuat | UI sudah menampilkan status "memuat..."; tunggu / coba lagi |
 
 ---

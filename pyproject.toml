@@ -1,0 +1,30 @@
+# Manifest khusus build Vercel (project backend, Root Directory = ./).
+#
+# Vercel mencari pyproject.toml LEBIH DULU daripada requirements.txt, sehingga
+# daftar di bawah ini yang dipakai saat deploy. requirements.txt tetap menjadi
+# sumber dependensi untuk Colab/CI/notebook dan tidak diubah.
+#
+# Yang sengaja TIDAK ada di sini: shap (beserta numba/llvmlite). Model produksi
+# adalah Ridge dengan explanation_method "linear_coef", jadi shap tidak
+# diimpor saat inference (lihat impor lambat di src/explainer.py). Rantai
+# numba+llvmlite saja ~197 MB dan membuat bundle melewati batas fungsi Vercel
+# 225 MB. Untuk model tree, pasang shap secara lokal/Colab lewat requirements.txt.
+
+[project]
+name = "real-estate-avm-api"
+version = "1.0.0"
+description = "FastAPI inference service untuk AVM Ames (deploy Vercel)"
+requires-python = ">=3.13"
+dependencies = [
+    "scikit-learn==1.6.1",
+    "pandas==2.2.3",
+    "numpy==2.4.6",
+    "joblib==1.6.0",
+    "fastapi==0.115.12",
+    "pydantic==2.11.3",
+    "uvicorn==0.34.2",
+]
+
+# Jangan pasang repo ini sebagai paket saat uv menyiapkan environment.
+[tool.uv]
+package = false
