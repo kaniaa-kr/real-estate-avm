@@ -685,3 +685,224 @@ button:disabled {
     transition: none !important;
   }
 }
+
+/* ==========================================================================
+   SIMS-STYLE THEME VARIABLES & UTILITY CLASSES
+   Sesi 1 (Fondasi): Digunakan oleh komponen UI Sims tanpa merusak layout asli.
+   ========================================================================== */
+
+:root {
+  /* Sims Typography */
+  --sims-font-display: var(--font-fredoka), ui-rounded, "Nunito", system-ui, sans-serif;
+  --sims-font-body: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  /* Sims Deep Navy / Cyan-Blue Glass */
+  --sims-blue-950: #040d18;
+  --sims-blue-900: #081726;
+  --sims-blue-850: #0c2033;
+  --sims-blue-800: #102a43;
+  --sims-blue-700: #173b5c;
+  --sims-blue-600: #1f4f7a;
+  --sims-blue-glass: rgba(12, 33, 53, 0.84);
+  --sims-blue-glass-elevated: rgba(18, 47, 74, 0.92);
+  --sims-blue-glass-dock: rgba(8, 24, 40, 0.94);
+  --sims-blue-border: rgba(147, 210, 255, 0.26);
+  --sims-blue-border-strong: rgba(147, 210, 255, 0.52);
+  --sims-blue-glow: 0 0 20px rgba(78, 161, 237, 0.35);
+
+  /* HUD Dark Pills */
+  --sims-hud-pill: rgba(6, 18, 30, 0.88);
+  --sims-hud-pill-border: rgba(255, 255, 255, 0.16);
+  --sims-hud-text: #f0f6fc;
+  --sims-hud-muted: #8ea8c3;
+
+  /* Sims Plumbob Green & Accent States */
+  --sims-green: #00d66c;
+  --sims-green-hover: #14eb7d;
+  --sims-green-glow: 0 0 16px rgba(0, 214, 108, 0.55);
+  --sims-green-bg: rgba(0, 214, 108, 0.15);
+  --sims-green-card: rgba(0, 214, 108, 0.22);
+  --sims-green-border: rgba(0, 214, 108, 0.7);
+
+  /* Accent Gold / Yellow */
+  --sims-yellow: #ffcb05;
+  --sims-yellow-glow: 0 0 16px rgba(255, 203, 5, 0.5);
+
+  /* Negative / Down Red */
+  --sims-down: #ff5252;
+  --sims-down-glow: 0 0 16px rgba(255, 82, 82, 0.45);
+}
+
+/* Tipografi Sims */
+.sims-font-display {
+  font-family: var(--sims-font-display);
+}
+
+.sims-font-body {
+  font-family: var(--sims-font-body);
+}
+
+/* Panel Kaca Biru Sims */
+.sims-glass {
+  background: var(--sims-blue-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--sims-blue-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.sims-glass-elevated {
+  background: var(--sims-blue-glass-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--sims-blue-border-strong);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sims-glass-dock {
+  background: var(--sims-blue-glass-dock);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid var(--sims-blue-border-strong);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Pil Gelap HUD Sims */
+.sims-hud-pill {
+  background: var(--sims-hud-pill);
+  border: 1px solid var(--sims-hud-pill-border);
+  border-radius: 9999px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--sims-hud-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Tombol Bulat Mengilap Sims */
+.sims-btn-shiny {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--sims-font-display);
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  user-select: none;
+}
+
+.sims-btn-shiny::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border-radius: 9999px 9999px 0 0;
+  pointer-events: none;
+}
+
+.sims-btn-shiny:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+.sims-btn-shiny:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.95);
+}
+
+.sims-btn-shiny:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Varian Tombol */
+.sims-btn-green {
+  background: linear-gradient(180deg, #18e67a 0%, #00b65a 100%);
+  border: 1px solid #33f08c;
+  color: #042514;
+  box-shadow: 0 4px 14px rgba(0, 214, 108, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.sims-btn-blue {
+  background: linear-gradient(180deg, #2b84c8 0%, #155588 100%);
+  border: 1px solid #4ea1ed;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(33, 126, 198, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.sims-btn-gold {
+  background: linear-gradient(180deg, #ffd43f 0%, #dfa50b 100%);
+  border: 1px solid #ffe27a;
+  color: #3b2600;
+  box-shadow: 0 4px 14px rgba(255, 203, 5, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Kartu Sims & State Hijau */
+.sims-card {
+  background: rgba(14, 38, 62, 0.65);
+  border: 1px solid var(--sims-blue-border);
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sims-card:hover {
+  border-color: var(--sims-blue-border-strong);
+  background: rgba(18, 48, 77, 0.75);
+  box-shadow: var(--sims-blue-glow);
+}
+
+.sims-card-selected {
+  background: var(--sims-green-card) !important;
+  border-color: var(--sims-green) !important;
+  box-shadow: var(--sims-green-glow), inset 0 0 12px rgba(0, 214, 108, 0.2) !important;
+}
+
+/* Efek Glow & Shadow */
+.sims-glow-green {
+  box-shadow: var(--sims-green-glow);
+}
+
+.sims-glow-blue {
+  box-shadow: var(--sims-blue-glow);
+}
+
+.sims-glow-yellow {
+  box-shadow: var(--sims-yellow-glow);
+}
+
+.sims-text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+}
+
+.sims-text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+/* Animasi Sims */
+@keyframes sims-plumbob-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+
+.sims-animate-plumbob {
+  animation: sims-plumbob-bounce 3.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sims-btn-shiny,
+  .sims-card,
+  .sims-animate-plumbob {
+    animation: none !important;
+    transition: none !important;
+  }
+}

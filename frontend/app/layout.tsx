@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
-import { Newsreader, Public_Sans } from "next/font/google";
+import { Fredoka, Newsreader, Nunito, Public_Sans } from "next/font/google";
 
 import "./globals.css";
+
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "600", "700", "800"],
+});
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -25,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${publicSans.variable} ${newsreader.variable}`}
+      className={`${fredoka.variable} ${nunito.variable} ${publicSans.variable} ${newsreader.variable}`}
     >
       <body>{children}</body>
     </html>
