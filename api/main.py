@@ -4,7 +4,7 @@ Jalankan dari ROOT repo:
     uvicorn api.main:app --reload --port 8000
 
 Variabel lingkungan (lihat .env.example):
-    MODEL_PATH, META_PATH    lokasi artefak (default: stub)
+    MODEL_PATH, META_PATH    lokasi artefak (default: model v1)
     ALLOWED_ORIGINS          daftar origin dipisah koma
     ALLOWED_ORIGIN_REGEX     (opsional) regex origin tambahan, default: semua *.vercel.app
 """
@@ -19,13 +19,20 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-import joblib
-import numpy as np
-import pandas as pd
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+# Root repo harus ada di sys.path SEBELUM `api.*` / `src.*` diimpor. Di Vercel
+# fungsi dijalankan dari root project, tetapi menambahkannya eksplisit membuat
+# `uvicorn api.main:app`, Vercel, dan pytest berperilaku sama.
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from api.schemas import (
+import joblib  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from fastapi import FastAPI, HTTPException  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+
+from api.schemas import (  # noqa: E402
     Factor,
     HealthResponse,
     ModelInfoResponse,
@@ -33,13 +40,14 @@ from api.schemas import (
     PredictResponse,
     PriceRange,
 )
-from src.config import FEATURE_NAMES, MODEL_VERSION
+from src.config import FEATURE_NAMES, MODEL_VERSION  # noqa: E402
+from src.evaluation import apply_interval  # noqa: E402
+from src.explainer import explain  # noqa: E402
 
 logger = logging.getLogger("avm.api")
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_MODEL_PATH = "models/model_pipeline_stub.joblib"
-DEFAULT_META_PATH = "models/model_meta_stub.json"
+DEFAULT_MODEL_PATH = "models/model_pipeline_v1.joblib"
+DEFAULT_META_PATH = "models/model_meta_v1.json"
 DEFAULT_ORIGIN_REGEX = r"^https://.*\.vercel\.app$"
 
 DISCLAIMER = (
@@ -88,6 +96,11 @@ async def lifespan(app: FastAPI):
     model_path = _resolve(os.getenv("MODEL_PATH", DEFAULT_MODEL_PATH))
     meta_path = _resolve(os.getenv("META_PATH", DEFAULT_META_PATH))
     try:
+        # Impor modul pipeline lebih dulu agar kelas kustom (HouseFeatureEngineer)
+        # sudah terdaftar di sys.modules sebelum joblib.load() melakukan unpickle.
+        import src.features  # noqa: F401
+        import src.preprocessing  # noqa: F401
+
         app.state.meta = json.loads(meta_path.read_text(encoding="utf-8"))
         app.state.model = joblib.load(model_path)
         _warn_on_version_mismatch(app.state.meta)
@@ -127,11 +140,10 @@ def _require_ready() -> tuple[Any, dict[str, Any]]:
     return model, meta
 
 
-def _build_top_factors(model: Any, row: pd.DataFrame) -> list[Factor]:
-    """PLACEHOLDER (Step 1): nilai tetap berbentuk sama dengan hasil asli.
+def _placeholder_factors() -> list[Factor]:
+    """Faktor contoh untuk model stub yang tidak punya `explain_background_`.
 
-    TODO Step 4/5: ganti dengan `src.explainer.explain(model, row, top_n=5)`.
-    Nilai di bawah BUKAN hasil perhitungan, hanya untuk menguji UI dan kontrak.
+    Hanya dipakai sebagai fallback Step 1; model v1 selalu memakai explainer asli.
     """
     fake = [
         ("OverallQual", 24000),
@@ -144,6 +156,25 @@ def _build_top_factors(model: Any, row: pd.DataFrame) -> list[Factor]:
         Factor(feature=name, impact_usd=value, direction="up" if value >= 0 else "down")
         for name, value in fake
     ]
+
+
+def _build_top_factors(model: Any, row: pd.DataFrame) -> list[Factor]:
+    """Hitung 5 faktor penentu harga dengan `src.explainer.explain()`.
+
+    `explain()` memilih metode otomatis: SHAP untuk tree, kontribusi koefisien
+    untuk Ridge/Lasso, dan ablation sebagai cadangan. Model stub tidak punya
+    `explain_background_`, jadi placeholder hanya dipakai untuk stub.
+    """
+    try:
+        return [Factor(**item) for item in explain(model, row, top_n=5)]
+    except Exception:
+        if getattr(model, "explain_background_", None) is None:
+            logger.warning(
+                "Model tanpa explain_background_ (stub); memakai placeholder faktor."
+            )
+            return _placeholder_factors()
+        logger.exception("Gagal menghitung faktor penentu; top_factors dikosongkan.")
+        return []
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -180,17 +211,21 @@ def predict(payload: PredictRequest) -> PredictResponse:  # type: ignore[valid-t
         pred_log = float(model.predict(row)[0])  # model menghasilkan skala log1p
 
         interval = meta["interval"]
-        price = int(round(float(np.expm1(pred_log))))
-        low = int(round(float(np.expm1(pred_log + interval["q_low"]))))
-        high = int(round(float(np.expm1(pred_log + interval["q_high"]))))
+        low, pred, high = apply_interval(
+            pred_log, interval["q_low"], interval["q_high"]
+        )
+        price = int(round(float(pred)))
+        low_usd = int(round(float(low)))
+        high_usd = int(round(float(high)))
 
-        # Jaga invarian 0 <= low <= price <= high
-        low = max(0, min(low, price))
-        high = max(high, price)
+        # apply_interval sudah menjamin 0 <= low <= pred <= high; clamp sekali
+        # lagi setelah pembulatan agar invarian PredictResponse tetap terjaga.
+        low_usd = max(0, min(low_usd, price))
+        high_usd = max(high_usd, price)
 
         return PredictResponse(
             predicted_price=price,
-            price_range=PriceRange(low=low, high=high),
+            price_range=PriceRange(low=low_usd, high=high_usd),
             top_factors=_build_top_factors(model, row),
             explanation_method=meta.get("explanation_method", "placeholder"),
             model_version=meta.get("model_version", MODEL_VERSION),

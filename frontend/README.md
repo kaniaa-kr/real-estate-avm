@@ -17,7 +17,8 @@ npm run dev                  # http://localhost:3000
 
 `NEXT_PUBLIC_API_URL` menunjuk ke API FastAPI (default `http://localhost:8000`
 untuk pengembangan lokal). Di Vercel, isi variabel ini dengan URL API publik
-(tanpa slash di akhir) sebelum deploy.
+(tanpa slash di akhir) sebelum deploy. Panduan lengkap dua project Vercel ada di
+[`../DEPLOY.md`](../DEPLOY.md).
 
 API lokal dijalankan dari **root repo**:
 
@@ -35,9 +36,8 @@ uvicorn api.main:app --reload --port 8000
   dari `features.json`; pesan galat tampil inline dan fokus berpindah ke kolom
   pertama yang salah.
 - Submit memanggil `POST /predict` dan menampilkan harga, rentang prediksi,
-  serta daftar sederhana `top_factors` (label Indonesia untuk fitur turunan
-  seperti `TotalSF` dan `HouseAge`). Grafik faktor akan dibuat Role 2 di
-  `components/FactorChart.*`.
+  serta grafik `FactorChart` dari `top_factors` (label Indonesia untuk fitur
+  turunan seperti `TotalSF` dan `HouseAge`; hijau menaikkan, merah menurunkan).
 - Banner disclaimer dari PRD selalu tampil di halaman.
 
 ## Perintah lain
@@ -55,6 +55,7 @@ app/page.tsx                        # halaman tunggal + banner disclaimer
 components/server-status-provider.tsx  # polling /health (context warm-up)
 components/health-status.tsx        # indikator status server
 components/valuation-form.tsx       # form, validasi klien, hasil prediksi
+components/FactorChart.tsx          # grafik batang top_factors (naik/turun)
 lib/api.ts                          # tipe & pemanggilan /health dan /predict
 lib/features.ts                     # pemuat features.json (satu sumber konfigurasi)
 lib/validation.ts                   # validasi nilai form

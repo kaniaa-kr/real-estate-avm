@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import FactorChart from "@/components/FactorChart";
 import { useServerStatus } from "@/components/server-status-provider";
 import {
   ApiError,
@@ -10,7 +11,6 @@ import {
 } from "@/lib/api";
 import { DISCLAIMER_TEXT } from "@/lib/disclaimer";
 import {
-  featureLabel,
   type FeatureDefinition,
   type FeaturesConfig,
 } from "@/lib/features";
@@ -35,13 +35,6 @@ const USD = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-const SIGNED_USD = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-  signDisplay: "always",
-});
-
 function methodLabel(method: string): string {
   switch (method) {
     case "shap_tree":
@@ -58,13 +51,7 @@ function methodLabel(method: string): string {
   }
 }
 
-function ResultView({
-  result,
-  features,
-}: {
-  result: PredictResponse;
-  features: FeatureDefinition[];
-}) {
+function ResultView({ result }: { result: PredictResponse }) {
   return (
     <div>
       <p className="result-kicker">Estimasi harga jual</p>
@@ -80,29 +67,9 @@ function ResultView({
       </div>
 
       <div className="factors">
-        <h3>Perkiraan pengaruh faktor</h3>
         {result.top_factors.length > 0 ? (
           <>
-            {/* Daftar sederhana dulu; grafik top_factors dikerjakan Role 2
-                di components/FactorChart.* dan akan menggantikan blok ini. */}
-            <ul className="factor-list">
-              {result.top_factors.map((factor) => (
-                <li
-                  key={factor.feature}
-                  className={`factor-row factor-${factor.direction}`}
-                >
-                  <span className="factor-name">
-                    {featureLabel(factor.feature, features)}
-                  </span>
-                  <span className="factor-value">
-                    {SIGNED_USD.format(factor.impact_usd)}
-                    <span className="factor-direction">
-                      {factor.direction === "up" ? "naik" : "turun"}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <FactorChart factors={result.top_factors} />
             <p className="factor-note">
               Nilai ini adalah aproksimasi per fitur dan tidak menjumlah persis
               ke selisih harga total.
@@ -391,7 +358,7 @@ export function ValuationForm({ config }: { config: FeaturesConfig }) {
         ) : null}
 
         {submission.status === "success" ? (
-          <ResultView result={submission.result} features={features} />
+          <ResultView result={submission.result} />
         ) : null}
       </aside>
     </div>
