@@ -1,0 +1,25 @@
+# Backend Vercel project (Root Directory = ./).
+# Yang WAJIB ikut bundle: api/, src/, models/, requirements.txt, .python-version.
+# Folder non-runtime di bawah ini dibuang agar fungsi tetap ramping.
+
+.git/
+.github/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+notebooks/
+data/
+tests/
+reports/
+frontend/
+
+Dockerfile
+.dockerignore
+requirements-dev.txt
+.env
+.env.*
+*.md
