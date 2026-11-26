@@ -1,0 +1,14 @@
+# .vercelignore untuk project frontend (Root Directory = frontend).
+#
+# WAJIB ada: Vercel memakai .vercelignore di root project frontend lebih dulu.
+# Tanpa file ini, Vercel memakai .vercelignore di root repo — dan file itu
+# membuang `frontend/` untuk merampingkan bundle backend, sehingga build
+# frontend tidak menemukan app/ dan hanya menghasilkan route /404.
+#
+# Jangan pernah menambahkan `frontend/` atau `app/` di sini.
+
+node_modules/
+.next/
+.vercel/
+.env
+.env*.local
