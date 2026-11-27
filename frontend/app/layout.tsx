@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Newsreader, Nunito, Public_Sans } from "next/font/google";
 
 import "./globals.css";
@@ -33,6 +33,12 @@ export const metadata: Metadata = {
   title: "Estimasi Harga Rumah Ames | AVM",
   description:
     "Prototipe akademik Automated Valuation Model untuk estimasi harga rumah di Ames, Iowa (2006–2010).",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

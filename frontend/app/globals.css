@@ -936,7 +936,7 @@ button:disabled {
 .sims-tab.active {
   background: linear-gradient(180deg, #8cd3ff 0%, #56bdf9 100%);
   border-color: #ffffff;
-  transform: translateY(-2px);
+  transform: translateY(0);
   box-shadow: 0 0 12px rgba(140, 211, 255, 0.9), inset 0 2px 4px rgba(255, 255, 255, 0.85);
 }
 
@@ -947,29 +947,6 @@ button:disabled {
 .sims-tab.event-tab.active {
   background: linear-gradient(180deg, #ff9ebf 0%, #f06292 100%);
   box-shadow: 0 0 12px rgba(240, 98, 146, 0.85), inset 0 2px 4px rgba(255, 255, 255, 0.85);
-}
-
-.sims-side-tile {
-  background: linear-gradient(180deg, #359aef 0%, #1466b8 100%);
-  border: 2px solid #ffffff;
-  border-radius: 0.75rem;
-  box-shadow: 0 3px 6px rgba(10, 52, 99, 0.3), inset 0 2px 3px rgba(255, 255, 255, 0.6);
-  color: #ffffff;
-  transition: transform 0.15s ease, background 0.15s ease;
-  cursor: pointer;
-}
-
-.sims-side-tile:hover {
-  filter: brightness(1.07);
-}
-
-.sims-side-tile:active {
-  transform: scale(0.95);
-}
-
-.sims-side-tile.active {
-  background: linear-gradient(180deg, #ffffff 0%, #dceefb 100%);
-  color: #0d59a7;
 }
 
 /* --------------------------------------------------------------------------
@@ -1055,6 +1032,92 @@ input[type="range"].sims-slider::-moz-range-thumb {
   border-radius: 9999px;
   background: radial-gradient(circle at 35% 35%, #a5f55b, #49a80e);
   box-shadow: 0 2px 6px rgba(10, 52, 99, 0.45);
+}
+
+/* Input angka langsung pada kartu slider */
+input.sims-number-input {
+  height: 1.75rem;
+  border-radius: 9999px;
+  border: 1.5px solid #bae6fd;
+  background: #e0f2fe;
+  color: #0d59a7;
+  font-family: var(--sims-font-display);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0 0.35rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+input.sims-number-input:hover {
+  background: #dbeefe;
+}
+
+input.sims-number-input:focus {
+  background: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28);
+}
+
+input.sims-number-input.is-invalid {
+  border-color: #ef4444;
+  background: #fff1f2;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
+input.sims-number-input::-webkit-outer-spin-button,
+input.sims-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input.sims-number-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Kontrol zoom denah */
+.sims-zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #ffffff;
+  color: #334155;
+  font-weight: 900;
+  font-size: 0.95rem;
+  line-height: 1;
+  box-shadow: 0 3px 8px rgba(10, 52, 99, 0.3), inset 0 2px 2px rgba(255, 255, 255, 0.9);
+  transition: transform 0.12s ease, background 0.12s ease;
+  cursor: pointer;
+}
+
+.sims-zoom-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.sims-zoom-btn:active {
+  transform: scale(0.94);
+}
+
+.sims-zoom-btn.reset {
+  width: auto;
+  min-width: 2.5rem;
+  padding: 0 0.45rem;
+  font-family: var(--sims-font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+}
+
+/* Hormati safe-area iPhone (viewport-fit=cover) */
+.pb-safe {
+  padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* --------------------------------------------------------------------------

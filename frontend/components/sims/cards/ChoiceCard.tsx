@@ -40,12 +40,16 @@ export function ChoiceCard({
   const selectedLabel = options.find((o) => o.value === value)?.label ?? value;
 
   return (
-    <div className={`sims-item-card w-full h-full p-3 flex flex-col ${error ? "is-error" : ""}`}>
+    <div
+      className={`sims-item-card w-full h-full p-3 flex flex-col justify-between ${
+        error ? "is-error" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <label className="text-[11px] sm:text-xs font-extrabold text-slate-700 leading-tight select-none">
           {label}
         </label>
-        <span className="text-[10px] font-black text-sky-800 bg-sky-100 border border-sky-200 rounded-full px-2 py-0.5 max-w-[55%] truncate">
+        <span className="text-[10px] font-black text-sky-800 bg-sky-100 border border-sky-200 rounded-full px-2 py-0.5 max-w-[55%] truncate shrink-0">
           {selectedLabel}
         </span>
       </div>
@@ -96,7 +100,13 @@ export function ChoiceCard({
           })}
         </div>
       ) : (
-        <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-1.5 my-0.5">
+        <div
+          role="radiogroup"
+          aria-label={label}
+          className={`grid gap-1.5 my-0.5 ${
+            options.length >= 5 ? "grid-cols-3" : "grid-cols-2"
+          }`}
+        >
           {options.map((opt) => {
             const isSelected = opt.value === value;
             return (
@@ -106,15 +116,21 @@ export function ChoiceCard({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => handleSelect(opt.value)}
-                className={`p-2 rounded-xl border-2 text-center transition-all duration-150 select-none flex flex-col items-center justify-center min-h-[52px] ${
+                className={`px-1.5 py-1 rounded-xl border-2 text-center transition-all duration-150 select-none flex flex-col items-center justify-center min-h-[44px] ${
                   isSelected
                     ? "border-[#68C928] bg-[#F3FFE8] text-emerald-900 shadow-[0_0_0_2px_#ffffff,0_4px_10px_rgba(59,142,13,0.3)]"
                     : "bg-white/85 border-sky-200 hover:border-sky-300 hover:bg-sky-50 text-slate-700"
                 }`}
               >
-                <span className="text-[11px] font-extrabold leading-tight">{opt.label}</span>
+                <span className="text-[10px] sm:text-[11px] font-extrabold leading-tight">
+                  {opt.label}
+                </span>
                 {opt.desc && (
-                  <span className={`text-[9px] mt-0.5 ${isSelected ? "text-emerald-700" : "text-slate-500"}`}>
+                  <span
+                    className={`text-[8px] sm:text-[9px] mt-0.5 leading-tight line-clamp-1 ${
+                      isSelected ? "text-emerald-700" : "text-slate-500"
+                    }`}
+                  >
                     {opt.desc}
                   </span>
                 )}
@@ -124,13 +140,15 @@ export function ChoiceCard({
         </div>
       )}
 
-      {error ? (
-        <p className="text-[10px] text-red-600 font-bold mt-1 leading-snug" role="alert">
-          {error}
-        </p>
-      ) : (
-        help && <p className="text-[10px] text-slate-500 mt-1 leading-snug line-clamp-2">{help}</p>
-      )}
+      <div className="mt-1 min-h-[26px]">
+        {error ? (
+          <p className="text-[10px] text-red-600 font-bold leading-snug line-clamp-2" role="alert">
+            {error}
+          </p>
+        ) : (
+          help && <p className="text-[10px] text-slate-500 leading-snug line-clamp-2">{help}</p>
+        )}
+      </div>
     </div>
   );
 }
