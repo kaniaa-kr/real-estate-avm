@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useId, useState } from "react";
+import React, { useCallback, useId } from "react";
 
 import { playBuildSound } from "@/lib/sound";
 
@@ -24,15 +24,27 @@ const QUALITY_LEVELS: Array<{ level: number; label: string; tier: string }> = [
   { level: 1, label: "Sangat Buruk", tier: "Standar" },
 ];
 
+function Chevron({ direction }: { direction: "up" | "down" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" aria-hidden="true">
+      <path
+        d={direction === "up" ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"}
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function QualitySelector({
   value,
   onChange,
   error,
   className = "",
 }: QualitySelectorProps) {
-  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const selectorId = useId();
-
   const currentLevel = QUALITY_LEVELS.find((q) => q.level === value) ?? QUALITY_LEVELS[4];
 
   const handleSelect = useCallback(
@@ -79,85 +91,24 @@ export function QualitySelector({
 
   return (
     <>
-      {/* Desktop & Laptop Vertical Selector (>= 768px) */}
+      {/* Desktop / laptop: kapsul vertikal melayang di kanan tengah */}
       <aside
         id={selectorId}
-        aria-label="Kualitas Material & Finishing Bangunan"
-        className={`hidden md:flex flex-col items-center p-2.5 rounded-2xl sims-glass border border-cyan-400/20 shadow-2xl ${className}`}
-        style={{ width: "76px" }}
+        aria-label="Kualitas material dan finishing bangunan"
+        className={`hidden md:flex flex-col items-center gap-1.5 p-1 rounded-3xl bg-white/25 border-2 border-white/70 backdrop-blur-sm shadow-lg absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 ${className}`}
       >
-        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest text-center mb-2 select-none">
-          Kualitas
-        </span>
-
-        <div
-          role="slider"
-          tabIndex={0}
-          aria-valuemin={1}
-          aria-valuemax={10}
-          aria-valuenow={value}
-          aria-valuetext={`${value}: ${currentLevel.label}`}
-          onKeyDown={handleKeyDown}
-          className="flex flex-col gap-1 w-full focus:outline-none focus:ring-2 focus:ring-emerald-400/50 rounded-xl p-0.5"
-        >
-          {QUALITY_LEVELS.map(({ level, label, tier }) => {
-            const isSelected = level === value;
-
-            return (
-              <button
-                key={level}
-                type="button"
-                tabIndex={-1}
-                onClick={() => handleSelect(level)}
-                aria-label={`Tingkat ${level}: ${label} (${tier})`}
-                className={`relative group w-full h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all duration-150 select-none ${
-                  isSelected
-                    ? "sims-btn-shiny sims-btn-green text-slate-950 scale-105 z-10 shadow-[0_0_12px_#00d66c]"
-                    : "bg-slate-900/50 text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent hover:border-cyan-500/30"
-                }`}
-              >
-                <span>{level}</span>
-
-                {/* Floating tooltip on hover */}
-                <div className="absolute right-full mr-2.5 px-2.5 py-1 rounded-md bg-slate-900/95 text-white text-[11px] whitespace-nowrap shadow-xl border border-cyan-500/20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-30">
-                  <span className="font-extrabold text-emerald-400 mr-1.5">{level}</span>
-                  <span>{label}</span>
-                  <span className="text-[9px] text-slate-400 ml-1.5 uppercase font-mono">({tier})</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-2 text-center select-none">
-          <span className="block text-[11px] font-extrabold text-emerald-400">{value}/10</span>
-          <span className="block text-[9px] text-slate-400 truncate max-w-[64px]" title={currentLevel.label}>
-            {currentLevel.label}
-          </span>
-        </div>
-
-        {error && (
-          <p className="text-[10px] text-red-400 font-bold mt-1 text-center" role="alert">
-            {error}
-          </p>
-        )}
-      </aside>
-
-      {/* Mobile Compact Bar (< 768px) */}
-      <div className="md:hidden fixed right-3 top-20 z-20 flex flex-col items-end">
         <button
           type="button"
-          onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-          aria-expanded={isMobileExpanded}
-          aria-label={`Pilih Kualitas Rumah: saat ini ${value} (${currentLevel.label})`}
-          className="sims-hud-pill px-3 py-1.5 flex items-center gap-1.5 border border-emerald-400/50 shadow-lg text-xs font-bold text-white bg-slate-900/90"
+          onClick={() => handleSelect(value + 1)}
+          disabled={value >= 10}
+          aria-label="Naikkan kualitas material"
+          title="Naikkan kualitas"
+          className="w-11 h-8 rounded-t-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
         >
-          <span className="text-[10px] text-slate-400 uppercase">Qual:</span>
-          <span className="text-emerald-400 font-extrabold font-mono text-sm">{value}</span>
-          <span className="text-[11px] text-slate-200">★</span>
+          <Chevron direction="up" />
         </button>
 
-        {isMobileExpanded && (
+        <div className="relative group">
           <div
             role="slider"
             tabIndex={0}
@@ -166,42 +117,89 @@ export function QualitySelector({
             aria-valuenow={value}
             aria-valuetext={`${value}: ${currentLevel.label}`}
             onKeyDown={handleKeyDown}
-            className="sims-glass mt-1 p-2 rounded-xl border border-cyan-400/30 shadow-2xl flex flex-col gap-1 w-36 max-h-[50dvh] overflow-y-auto"
+            className="w-12 h-12 rounded-full bg-slate-800/90 border-[2.5px] border-white shadow-lg flex items-center justify-center text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-lime-300/70"
           >
-            <div className="flex justify-between items-center px-1 mb-1 border-b border-cyan-500/20 pb-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Kualitas (1-10)</span>
-              <button
-                type="button"
-                onClick={() => setIsMobileExpanded(false)}
-                className="text-slate-400 hover:text-white text-xs px-1"
-              >
-                ✕
-              </button>
-            </div>
-            {QUALITY_LEVELS.map(({ level, label }) => {
-              const isSelected = level === value;
-              return (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => {
-                    handleSelect(level);
-                    setIsMobileExpanded(false);
-                  }}
-                  className={`px-2 py-1.5 rounded-lg text-left text-xs font-bold flex items-center justify-between ${
-                    isSelected
-                      ? "sims-btn-shiny sims-btn-green text-slate-950 font-extrabold"
-                      : "bg-slate-900/60 text-slate-200 hover:bg-slate-800"
-                  }`}
-                >
-                  <span>{label}</span>
-                  <span className="font-mono text-xs opacity-80">{level}</span>
-                </button>
-              );
-            })}
+            <span className="font-display text-lg font-black leading-none">{value}</span>
           </div>
+
+          {/* Tooltip label */}
+          <div className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="px-2.5 py-1 rounded-lg bg-slate-800/95 text-white text-[10px] whitespace-nowrap shadow-xl border border-white/40">
+              <span className="font-black text-lime-300 mr-1">{value}/10</span>
+              {currentLevel.label}
+              <span className="text-[9px] text-sky-200 ml-1.5 uppercase">({currentLevel.tier})</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleSelect(value - 1)}
+          disabled={value <= 1}
+          aria-label="Turunkan kualitas material"
+          title="Turunkan kualitas"
+          className="w-11 h-8 rounded-b-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
+        >
+          <Chevron direction="down" />
+        </button>
+
+        <span className="max-w-[64px] text-center text-[9px] font-extrabold text-white bg-slate-800/80 border border-white/70 rounded-full px-1.5 py-0.5 leading-tight">
+          {currentLevel.label}
+        </span>
+
+        {error && (
+          <p className="max-w-[70px] text-[9px] text-red-700 bg-white/90 font-bold text-center rounded px-1" role="alert">
+            {error}
+          </p>
+        )}
+      </aside>
+
+      {/* Mobile: pil ringkas di kiri bawah, tidak menutupi denah */}
+      <div className="md:hidden flex flex-col items-start gap-1 absolute left-2.5 bottom-2.5 z-20">
+        <div className="flex items-center gap-1 p-1 rounded-full bg-white/85 border-2 border-white shadow-lg backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => handleSelect(value - 1)}
+            disabled={value <= 1}
+            aria-label="Turunkan kualitas material"
+            className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
+          >
+            <Chevron direction="down" />
+          </button>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-valuemin={1}
+            aria-valuemax={10}
+            aria-valuenow={value}
+            aria-valuetext={`${value}: ${currentLevel.label}`}
+            onKeyDown={handleKeyDown}
+            aria-label={`Kualitas rumah: ${value} dari 10, ${currentLevel.label}`}
+            className="w-9 h-9 rounded-full bg-slate-800/90 border-2 border-white shadow flex items-center justify-center text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400"
+          >
+            <span className="font-display text-sm font-black leading-none">{value}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleSelect(value + 1)}
+            disabled={value >= 10}
+            aria-label="Naikkan kualitas material"
+            className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
+          >
+            <Chevron direction="up" />
+          </button>
+          <span className="pr-1 text-[9px] font-extrabold text-slate-700 uppercase leading-tight">
+            Kualitas
+          </span>
+        </div>
+        {error && (
+          <p className="text-[9px] text-red-700 bg-white/90 font-bold rounded px-1.5 py-0.5" role="alert">
+            {error}
+          </p>
         )}
       </div>
     </>
   );
 }
+
+export default QualitySelector;
