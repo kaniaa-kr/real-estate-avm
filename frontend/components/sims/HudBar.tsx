@@ -17,6 +17,7 @@ export interface HudBarProps {
   onOpenAnalysis?: () => void;
   onOpenModelInfo?: () => void;
   onOpenPresets?: () => void;
+  onOpenScenarios?: () => void;
   onRandomize?: () => void;
 }
 
@@ -70,6 +71,7 @@ export function HudBar({
   onOpenAnalysis,
   onOpenModelInfo,
   onOpenPresets,
+  onOpenScenarios,
   onRandomize,
 }: HudBarProps) {
   const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
@@ -140,10 +142,10 @@ export function HudBar({
 
         {/* Kolom Tengah: PIL HARGA UTAMA & RENTANG */}
         <div className="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
-          {/* Pil Harga Prediksi USD (Animasi Angka Bergulir ~420ms) */}
+          {/* Pil Harga Prediksi USD (Animasi Angka Bergulir ~420ms + Efek Shimmer saat Loading/Stale) */}
           <div
-            className={`sims-hud-pill px-4 sm:px-6 py-1.5 sm:py-2 border-2 border-emerald-400/70 shadow-[0_0_20px_rgba(0,214,108,0.35)] flex items-center gap-2 transition-opacity ${
-              isStale || isLoading ? "opacity-75" : "opacity-100"
+            className={`sims-hud-pill px-4 sm:px-6 py-1.5 sm:py-2 border-2 border-emerald-400/70 shadow-[0_0_20px_rgba(0,214,108,0.35)] flex items-center gap-2 transition-all ${
+              isStale || isLoading ? "sims-shimmer opacity-85" : "opacity-100"
             }`}
           >
             <span className="text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">
@@ -186,6 +188,20 @@ export function HudBar({
           >
             <span>🏷️</span>
             <span className="hidden sm:inline">Preset</span>
+          </button>
+
+          {/* Tombol Skenario Tersimpan */}
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound();
+              onOpenScenarios?.();
+            }}
+            title="Buka Skenario Tersimpan"
+            className="sims-btn-shiny bg-slate-900/80 text-cyan-200 border border-cyan-500/30 px-3 py-1.5 text-xs font-bold min-h-[38px] flex items-center gap-1 rounded-full hover:bg-slate-800"
+          >
+            <span>💾</span>
+            <span className="hidden sm:inline">Skenario</span>
           </button>
 
           {/* Tombol Acak */}

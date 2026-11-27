@@ -2,11 +2,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import FactorChart from "@/components/FactorChart";
 import { useServerStatus } from "@/components/server-status-provider";
+import { AnalyticsModal } from "@/components/sims/AnalyticsModal";
 import { BuildDock } from "@/components/sims/BuildDock";
 import { HudBar } from "@/components/sims/HudBar";
 import { QualitySelector } from "@/components/sims/QualitySelector";
+import { SavedScenarios } from "@/components/sims/SavedScenarios";
 import { Toast } from "@/components/sims/Toast";
 import { WorldScene } from "@/components/sims/WorldScene";
 import { DISCLAIMER_TEXT } from "@/lib/disclaimer";
@@ -27,12 +28,17 @@ export function SimsApp() {
   );
 
   // 2. State Modal & Toast
-  const [activeModal, setActiveModal] = useState<"analysis" | "model-info" | "presets" | null>(null);
+  const [activeModal, setActiveModal] = useState<
+    "analysis" | "model-info" | "presets" | "scenarios" | null
+  >(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"info" | "success" | "warning" | "error">("info");
   const [dismissedError, setDismissedError] = useState<string | null>(null);
 
-  // 3. Metadata model & hook prediksi reaktif
+  // 3. Efek partikel selebrasi saat prediksi sukses
+  const [showParticles, setShowParticles] = useState(false);
+
+  // 4. Metadata model & hook prediksi reaktif
   const { modelInfo } = useModelInfo();
   const isServerReady = phase === "ready";
 
@@ -41,12 +47,15 @@ export function SimsApp() {
     { enabled: isServerReady },
   );
 
-  // Bunyikan suara sukses saat kalkulasi prediksi selesai
+  // Bunyikan suara sukses dan picu partikel perayaan saat kalkulasi prediksi selesai
   const prevResultRef = useRef(result);
   useEffect(() => {
     if (result && result !== prevResultRef.current && status === "success") {
       playSuccessSound();
       prevResultRef.current = result;
+      setShowParticles(true);
+      const timer = setTimeout(() => setShowParticles(false), 950);
+      return () => clearTimeout(timer);
     }
   }, [result, status]);
 
@@ -164,6 +173,7 @@ export function SimsApp() {
         onOpenAnalysis={() => setActiveModal("analysis")}
         onOpenModelInfo={() => setActiveModal("model-info")}
         onOpenPresets={() => setActiveModal("presets")}
+        onOpenScenarios={() => setActiveModal("scenarios")}
         onRandomize={handleRandomize}
       />
 
@@ -173,6 +183,35 @@ export function SimsApp() {
       <main className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center overflow-hidden">
         {/* World Scene Denah Rumah Top-Down */}
         <WorldScene values={values} className="w-full h-full" />
+
+        {/* Partikel Efek Selebrasi saat Sukses Menghitung Nilai */}
+        {showParticles && (
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-40">
+            {[
+              { dx: "-65px", dy: "-70px", color: "#00d66c" },
+              { dx: "65px", dy: "-65px", color: "#39e67d" },
+              { dx: "-85px", dy: "-20px", color: "#ffcb05" },
+              { dx: "80px", dy: "-15px", color: "#76ff9d" },
+              { dx: "-45px", dy: "-95px", color: "#52ffa8" },
+              { dx: "50px", dy: "-90px", color: "#ffcb05" },
+              { dx: "-25px", dy: "-115px", color: "#00d66c" },
+              { dx: "25px", dy: "-110px", color: "#ffffff" },
+            ].map((p, i) => (
+              <span
+                key={i}
+                className="sims-particle shadow-[0_0_8px_currentColor]"
+                style={
+                  {
+                    backgroundColor: p.color,
+                    color: p.color,
+                    "--tx": p.dx,
+                    "--ty": p.dy,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        )}
 
         {/* Vertical Quality Selector (Kanan Layar) */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20">
@@ -231,58 +270,28 @@ export function SimsApp() {
       />
 
       {/* ========================================================
-          F. MODAL ANALISIS FAKTOR (FACTOR CHART)
+          F. MODAL ANALISIS FAKTOR (ANALYTICS MODAL LENGKAP)
           ======================================================== */}
-      {activeModal === "analysis" && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-analysis-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
-        >
-          <div className="sims-glass p-5 sm:p-6 rounded-2xl max-w-xl w-full border border-cyan-400/30 shadow-2xl flex flex-col gap-4 max-h-[90dvh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">📊</span>
-                <h2 id="modal-analysis-title" className="text-lg font-bold text-white font-display">
-                  Faktor Penentu Harga
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="text-slate-400 hover:text-white text-base px-2 py-1 rounded"
-              >
-                ✕
-              </button>
-            </div>
+      <AnalyticsModal
+        isOpen={activeModal === "analysis"}
+        onClose={() => setActiveModal(null)}
+        result={result}
+        values={values}
+        modelInfo={modelInfo}
+        onCopyFeedback={(msg) => showToast(msg, "success")}
+      />
 
-            {result?.explanation_method === "placeholder" && (
-              <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs">
-                ⚠️ <strong>Catatan:</strong> Faktor penentu masih contoh (model uji).
-              </div>
-            )}
-
-            {result?.top_factors && result.top_factors.length > 0 ? (
-              <FactorChart factors={result.top_factors} maxItems={5} />
-            ) : (
-              <div className="text-center py-8 text-slate-400 text-sm">
-                Belum ada data faktor penentu. Pastikan prediksi telah berhasil dihitung.
-              </div>
-            )}
-
-            <div className="flex justify-end pt-2 border-t border-cyan-500/10">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="sims-btn-shiny sims-btn-blue px-4 py-2 text-xs font-bold rounded-lg text-white"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ========================================================
+          G. MODAL SKENARIO TERSIMPAN (SAVED SCENARIOS)
+          ======================================================== */}
+      <SavedScenarios
+        isOpen={activeModal === "scenarios"}
+        onClose={() => setActiveModal(null)}
+        currentValues={values}
+        currentPrice={result?.predicted_price}
+        onRestore={(vals) => setValues(vals)}
+        onToast={showToast}
+      />
 
       {/* ========================================================
           G. MODAL INFO MODEL (METADATA & AKURASI)
