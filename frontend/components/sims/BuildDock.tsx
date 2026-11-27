@@ -15,39 +15,31 @@ export type BuildDockTab = "structure" | "quality" | "location" | "facilities";
 export interface BuildDockProps {
   values: FeatureValues;
   onChange: (name: string, value: string) => void;
+  onRandomize?: () => void;
   fieldErrors?: FieldErrors;
   className?: string;
 }
 
 const TABS: Array<{ id: BuildDockTab; label: string; icon: string }> = [
   { id: "structure", label: "LUAS & STRUKTUR", icon: "📐" },
-  { id: "quality", label: "KUALITAS & USIA", icon: "✨" },
+  { id: "quality", label: "MATERIAL & TAHUN", icon: "✨" },
   { id: "location", label: "LOKASI", icon: "📍" },
   { id: "facilities", label: "FASILITAS", icon: "🚗" },
 ];
 
-const SIDE_TILES: Array<{
-  id: BuildDockTab;
-  label: string;
-  icon: string;
-  side: "left" | "right";
-}> = [
-  { id: "structure", label: "UKURAN", icon: "📏", side: "left" },
-  { id: "location", label: "LOKASI", icon: "🏙️", side: "left" },
-  { id: "quality", label: "KUALITAS", icon: "💎", side: "right" },
-  { id: "facilities", label: "FASILITAS", icon: "🚙", side: "right" },
-];
-
-const KITCHEN_OPTIONS = [
-  { value: "Fa", label: "Cukup (Fa)", desc: "Standar fungsional" },
-  { value: "TA", label: "Rata-rata (TA)", desc: "Granit klasik" },
-  { value: "Gd", label: "Baik (Gd)", desc: "Modern & pulau bar" },
-  { value: "Ex", label: "Istimewa (Ex)", desc: "Marmer chef premium" },
-];
+/** Label tampilan kualitas dapur; urutan opsi tetap diambil dari features.json. */
+const KITCHEN_QUALITY_META: Record<string, { label: string; desc: string }> = {
+  Po: { label: "Kurang (Po)", desc: "Perlu renovasi total" },
+  Fa: { label: "Cukup (Fa)", desc: "Fungsional sederhana" },
+  TA: { label: "Rata-rata (TA)", desc: "Standar hunian" },
+  Gd: { label: "Baik (Gd)", desc: "Modern & rapi" },
+  Ex: { label: "Istimewa (Ex)", desc: "Premium penuh" },
+};
 
 export function BuildDock({
   values,
   onChange,
+  onRandomize,
   fieldErrors = {},
   className = "",
 }: BuildDockProps) {
@@ -102,69 +94,77 @@ export function BuildDock({
   const fGarageCars = getFeat("GarageCars");
   const fFireplaces = getFeat("Fireplaces");
 
+  // Seluruh kategori dari features.json, dipertahankan urutannya (terendah → tertinggi).
+  const kitchenOptions = (fKitchenQual.categories ?? []).map((code) => ({
+    value: code,
+    label: KITCHEN_QUALITY_META[code]?.label ?? code,
+    desc: KITCHEN_QUALITY_META[code]?.desc ?? "",
+  }));
+  const kitchenOrder = (fKitchenQual.categories ?? []).join(" → ");
+
+  const yearBuiltValue = Number(values.YearBuilt ?? fYearBuilt.default);
+  const houseAge = Math.max(0, featuresConfig.ref_year - yearBuiltValue);
+
   return (
     <section
       aria-label="Panel pengaturan bangunan (build mode)"
       className={`relative w-full ${className}`}
     >
-      {/* Baris tab kategori — menempel di atas garis dock */}
-      <div className="relative z-10 flex items-end justify-center px-1 sm:px-4 -mb-[2px]">
-        <div
-          role="tablist"
-          aria-label="Kategori karakteristik rumah"
-          className="flex items-end gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar max-w-full px-1"
-        >
-          {TABS.map((tab, index) => {
-            const isActive = tab.id === activeTab;
-            const hasError = tabErrors[tab.id];
+      {/* Baris tab kategori — menempel rata di garis putih atas dock */}
+      <div className="relative z-10 flex w-full items-end gap-2 px-1 sm:px-4 -mb-[2.5px]">
+        <div className="hidden sm:block sm:w-11 shrink-0" aria-hidden="true" />
+        <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
+          <div
+            role="tablist"
+            aria-label="Kategori karakteristik rumah"
+            className="flex min-w-max items-end justify-start gap-1 px-0.5 sm:justify-center sm:gap-1.5"
+          >
+            {TABS.map((tab, index) => {
+              const isActive = tab.id === activeTab;
+              const hasError = tabErrors[tab.id];
 
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => handleTabChange(tab.id)}
-                className={`sims-tab ${index === 0 ? "event-tab" : ""} ${
-                  isActive ? "active" : ""
-                } relative flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 min-h-[42px] text-[10px] sm:text-xs font-extrabold tracking-wide whitespace-nowrap`}
-              >
-                <span aria-hidden="true">{tab.icon}</span>
-                <span>{tab.label}</span>
-                {hasError && <span className="w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-ping" />}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`sims-tab ${index === 0 ? "event-tab" : ""} ${
+                    isActive ? "active" : ""
+                  } relative flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 min-h-[42px] text-[10px] sm:text-xs font-extrabold tracking-wide whitespace-nowrap`}
+                >
+                  <span aria-hidden="true">{tab.icon}</span>
+                  <span>{tab.label}</span>
+                  {hasError && (
+                    <span className="w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-ping" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        {onRandomize ? (
+          <button
+            type="button"
+            onClick={onRandomize}
+            title="Acak Spesifikasi Rumah"
+            aria-label="Acak Spesifikasi Rumah"
+            className="sims-btn-round sims-btn-green shrink-0 w-10 h-10 sm:w-11 sm:h-11 text-lg"
+          >
+            <span aria-hidden="true">↺</span>
+          </button>
+        ) : (
+          <div className="w-10 sm:w-11 shrink-0" aria-hidden="true" />
+        )}
       </div>
 
       {/* Dock biru langit */}
-      <div className="sims-dock-bg w-full px-2 sm:px-4 py-2 sm:py-2.5 flex items-stretch gap-2 sm:gap-3">
-        {/* Tombol kotak kiri */}
-        <div className="hidden sm:flex flex-col justify-between gap-2 w-20 lg:w-24 shrink-0">
-          {SIDE_TILES.filter((tile) => tile.side === "left").map((tile) => (
-            <button
-              key={tile.id}
-              type="button"
-              onClick={() => handleTabChange(tile.id)}
-              aria-pressed={activeTab === tile.id}
-              className={`sims-side-tile flex-1 flex flex-col items-center justify-center gap-0.5 p-1 ${
-                activeTab === tile.id ? "active" : ""
-              }`}
-            >
-              <span className="text-base lg:text-lg" aria-hidden="true">
-                {tile.icon}
-              </span>
-              <span className="text-[9px] lg:text-[10px] font-black tracking-wide uppercase">{tile.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Katalog kartu kontrol */}
-        <div className="flex-1 min-w-0 flex items-stretch gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar py-0.5 px-0.5">
+      <div className="sims-dock-bg w-full px-2 sm:px-4 py-2 sm:py-2.5">
+        <div className="flex h-[168px] sm:h-[172px] lg:h-[176px] w-full items-stretch gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
           {activeTab === "structure" && (
-            <div className="flex items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+            <div className="flex h-full w-full items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <SliderCard
                   name="GrLivArea"
                   label={fGrLivArea.label}
@@ -177,7 +177,7 @@ export function BuildDock({
                   onChange={(val) => onChange("GrLivArea", String(val))}
                 />
               </div>
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <SliderCard
                   name="TotalBsmtSF"
                   label={fTotalBsmtSF.label}
@@ -190,7 +190,7 @@ export function BuildDock({
                   onChange={(val) => onChange("TotalBsmtSF", String(val))}
                 />
               </div>
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <SliderCard
                   name="LotArea"
                   label={fLotArea.label}
@@ -203,7 +203,7 @@ export function BuildDock({
                   onChange={(val) => onChange("LotArea", String(val))}
                 />
               </div>
-              <div className="w-[160px] sm:w-[176px] lg:w-[190px] shrink-0 flex">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <StepperCard
                   name="FullBath"
                   label={fFullBath.label}
@@ -220,27 +220,28 @@ export function BuildDock({
           )}
 
           {activeTab === "quality" && (
-            <div className="flex items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
-              <div className="w-[280px] sm:w-[340px] shrink-0 flex">
+            <div className="flex h-full w-full items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-[1.6] sm:basis-0 sm:min-w-[340px]">
                 <ChoiceCard
                   name="KitchenQual"
                   label={fKitchenQual.label}
                   value={String(values.KitchenQual ?? fKitchenQual.default)}
-                  options={KITCHEN_OPTIONS}
-                  help={fKitchenQual.help}
+                  options={kitchenOptions}
+                  help={`Urutan kualitas dari terendah ke tertinggi: ${kitchenOrder}.`}
                   error={fieldErrors.KitchenQual}
                   onChange={(val) => onChange("KitchenQual", val)}
                 />
               </div>
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[210px]">
                 <SliderCard
                   name="YearBuilt"
-                  label={fYearBuilt.label}
-                  value={Number(values.YearBuilt ?? fYearBuilt.default)}
+                  label={`${fYearBuilt.label} (Konstruksi)`}
+                  value={yearBuiltValue}
                   min={fYearBuilt.min ?? 1872}
                   max={fYearBuilt.max ?? 2010}
                   unit={fYearBuilt.unit}
-                  help={fYearBuilt.help}
+                  groupThousands={false}
+                  help={`Usia bangunan: ${houseAge} tahun (${featuresConfig.ref_year}). Makin baru umumnya makin bernilai.`}
                   error={fieldErrors.YearBuilt}
                   onChange={(val) => onChange("YearBuilt", String(val))}
                 />
@@ -249,7 +250,7 @@ export function BuildDock({
           )}
 
           {activeTab === "location" && (
-            <div className="w-[86vw] max-w-[540px] sm:w-[560px] lg:w-full lg:max-w-[680px] shrink-0 flex animate-fadeIn">
+            <div className="flex h-full w-full animate-fadeIn">
               <ChoiceCard
                 name="Neighborhood"
                 label={fNeighborhood.label}
@@ -268,8 +269,8 @@ export function BuildDock({
           )}
 
           {activeTab === "facilities" && (
-            <div className="flex items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+            <div className="flex h-full w-full items-stretch gap-2.5 sm:gap-3 animate-fadeIn">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <StepperCard
                   name="GarageCars"
                   label={fGarageCars.label}
@@ -282,7 +283,7 @@ export function BuildDock({
                   onChange={(val) => onChange("GarageCars", String(val))}
                 />
               </div>
-              <div className="w-[178px] sm:w-[200px] lg:w-[218px] shrink-0 flex">
+              <div className="flex w-full shrink-0 basis-full snap-center sm:w-auto sm:flex-1 sm:basis-0 sm:min-w-[190px]">
                 <StepperCard
                   name="Fireplaces"
                   label={fFireplaces.label}
@@ -297,26 +298,6 @@ export function BuildDock({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Tombol kotak kanan */}
-        <div className="hidden sm:flex flex-col justify-between gap-2 w-20 lg:w-24 shrink-0">
-          {SIDE_TILES.filter((tile) => tile.side === "right").map((tile) => (
-            <button
-              key={tile.id}
-              type="button"
-              onClick={() => handleTabChange(tile.id)}
-              aria-pressed={activeTab === tile.id}
-              className={`sims-side-tile flex-1 flex flex-col items-center justify-center gap-0.5 p-1 ${
-                activeTab === tile.id ? "active" : ""
-              }`}
-            >
-              <span className="text-base lg:text-lg" aria-hidden="true">
-                {tile.icon}
-              </span>
-              <span className="text-[9px] lg:text-[10px] font-black tracking-wide uppercase">{tile.label}</span>
-            </button>
-          ))}
         </div>
       </div>
     </section>

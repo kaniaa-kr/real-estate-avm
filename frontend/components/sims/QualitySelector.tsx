@@ -89,47 +89,48 @@ export function QualitySelector({
     }
   };
 
+  const sliderAria = {
+    role: "slider",
+    tabIndex: 0,
+    "aria-valuemin": 1,
+    "aria-valuemax": 10,
+    "aria-valuenow": value,
+    "aria-valuetext": `${value}: ${currentLevel.label}`,
+    onKeyDown: handleKeyDown,
+  } as const;
+
   return (
     <>
       {/* Desktop / laptop: kapsul vertikal melayang di kanan tengah */}
       <aside
         id={selectorId}
-        aria-label="Kualitas material dan finishing bangunan"
-        className={`hidden md:flex flex-col items-center gap-1.5 p-1 rounded-3xl bg-white/25 border-2 border-white/70 backdrop-blur-sm shadow-lg absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 ${className}`}
+        aria-label="Kualitas material dan finishing bangunan, skala 1 sampai 10"
+        className={`hidden md:flex flex-col items-center gap-1 p-1.5 rounded-2xl bg-white/35 border-2 border-white/80 backdrop-blur-sm shadow-lg absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 ${className}`}
       >
+        <div className="w-full px-0.5 text-center leading-none pb-0.5">
+          <span className="block text-[8px] font-black uppercase tracking-wide text-slate-700">
+            Kualitas Material
+          </span>
+          <span className="block text-[8px] font-extrabold text-slate-600">(1–10)</span>
+        </div>
+
         <button
           type="button"
           onClick={() => handleSelect(value + 1)}
           disabled={value >= 10}
           aria-label="Naikkan kualitas material"
-          title="Naikkan kualitas"
-          className="w-11 h-8 rounded-t-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
+          title="Naikkan kualitas material"
+          className="w-12 h-7 rounded-t-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
         >
           <Chevron direction="up" />
         </button>
 
-        <div className="relative group">
-          <div
-            role="slider"
-            tabIndex={0}
-            aria-valuemin={1}
-            aria-valuemax={10}
-            aria-valuenow={value}
-            aria-valuetext={`${value}: ${currentLevel.label}`}
-            onKeyDown={handleKeyDown}
-            className="w-12 h-12 rounded-full bg-slate-800/90 border-[2.5px] border-white shadow-lg flex items-center justify-center text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-lime-300/70"
-          >
-            <span className="font-display text-lg font-black leading-none">{value}</span>
-          </div>
-
-          {/* Tooltip label */}
-          <div className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="px-2.5 py-1 rounded-lg bg-slate-800/95 text-white text-[10px] whitespace-nowrap shadow-xl border border-white/40">
-              <span className="font-black text-lime-300 mr-1">{value}/10</span>
-              {currentLevel.label}
-              <span className="text-[9px] text-sky-200 ml-1.5 uppercase">({currentLevel.tier})</span>
-            </div>
-          </div>
+        <div
+          {...sliderAria}
+          aria-label={`Kualitas material: ${value} dari 10, ${currentLevel.label}`}
+          className="w-12 h-12 rounded-full bg-slate-800/90 border-[2.5px] border-white shadow-lg flex items-center justify-center text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-lime-300/70"
+        >
+          <span className="font-display text-lg font-black leading-none">{value}</span>
         </div>
 
         <button
@@ -137,44 +138,45 @@ export function QualitySelector({
           onClick={() => handleSelect(value - 1)}
           disabled={value <= 1}
           aria-label="Turunkan kualitas material"
-          title="Turunkan kualitas"
-          className="w-11 h-8 rounded-b-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
+          title="Turunkan kualitas material"
+          className="w-12 h-7 rounded-b-2xl bg-white/90 hover:bg-white border-2 border-white shadow-lg flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
         >
           <Chevron direction="down" />
         </button>
 
-        <span className="max-w-[64px] text-center text-[9px] font-extrabold text-white bg-slate-800/80 border border-white/70 rounded-full px-1.5 py-0.5 leading-tight">
-          {currentLevel.label}
+        <span className="max-w-[82px] text-center text-[9px] font-extrabold text-white bg-slate-800/85 border border-white/70 rounded-full px-1.5 py-0.5 leading-tight">
+          {value} • {currentLevel.label}
         </span>
 
         {error && (
-          <p className="max-w-[70px] text-[9px] text-red-700 bg-white/90 font-bold text-center rounded px-1" role="alert">
+          <p
+            className="max-w-[82px] text-[9px] text-red-700 bg-white/90 font-bold text-center rounded px-1"
+            role="alert"
+          >
             {error}
           </p>
         )}
       </aside>
 
       {/* Mobile: pil ringkas di kiri bawah, tidak menutupi denah */}
-      <div className="md:hidden flex flex-col items-start gap-1 absolute left-2.5 bottom-2.5 z-20">
-        <div className="flex items-center gap-1 p-1 rounded-full bg-white/85 border-2 border-white shadow-lg backdrop-blur-sm">
+      <div className="md:hidden absolute left-2.5 bottom-2.5 z-20 flex flex-col items-start gap-1">
+        <span className="ml-1 rounded-full bg-slate-800/85 px-2 py-0.5 text-[8px] font-black uppercase tracking-wide text-white shadow">
+          Kualitas Material (1–10)
+        </span>
+        <div className="flex items-center gap-1 p-1 pr-2 rounded-full bg-white/90 border-2 border-white shadow-lg backdrop-blur-sm">
           <button
             type="button"
             onClick={() => handleSelect(value - 1)}
             disabled={value <= 1}
             aria-label="Turunkan kualitas material"
+            title="Turunkan kualitas material"
             className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
           >
             <Chevron direction="down" />
           </button>
           <div
-            role="slider"
-            tabIndex={0}
-            aria-valuemin={1}
-            aria-valuemax={10}
-            aria-valuenow={value}
-            aria-valuetext={`${value}: ${currentLevel.label}`}
-            onKeyDown={handleKeyDown}
-            aria-label={`Kualitas rumah: ${value} dari 10, ${currentLevel.label}`}
+            {...sliderAria}
+            aria-label={`Kualitas material: ${value} dari 10, ${currentLevel.label}`}
             className="w-9 h-9 rounded-full bg-slate-800/90 border-2 border-white shadow flex items-center justify-center text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-lime-400"
           >
             <span className="font-display text-sm font-black leading-none">{value}</span>
@@ -184,12 +186,13 @@ export function QualitySelector({
             onClick={() => handleSelect(value + 1)}
             disabled={value >= 10}
             aria-label="Naikkan kualitas material"
+            title="Naikkan kualitas material"
             className="w-8 h-8 rounded-full bg-white border-2 border-slate-200 shadow flex items-center justify-center text-slate-600 active:scale-90 transition disabled:opacity-40"
           >
             <Chevron direction="up" />
           </button>
-          <span className="pr-1 text-[9px] font-extrabold text-slate-700 uppercase leading-tight">
-            Kualitas
+          <span className="max-w-[112px] text-[9px] font-extrabold text-slate-700 leading-tight">
+            {value} • {currentLevel.label}
           </span>
         </div>
         {error && (

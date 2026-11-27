@@ -67,3 +67,13 @@ export function formatNumber(value: number): string {
   if (!Number.isFinite(value)) return "—";
   return Math.round(value).toLocaleString("en-US");
 }
+
+/**
+ * Format bilangan bulat tanpa pemisah ribuan opsional.
+ * Dipakai untuk tahun (contoh: 2000, bukan 2,000) dan batas slider.
+ */
+export function formatInteger(value: number, groupThousands = true): string {
+  if (!Number.isFinite(value)) return "—";
+  const rounded = Math.round(value);
+  return groupThousands ? rounded.toLocaleString("en-US") : String(rounded);
+}

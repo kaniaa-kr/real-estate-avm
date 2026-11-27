@@ -1,9 +1,17 @@
 "use client";
 
-import React, { useId } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { getNeighborhoodName } from "@/lib/neighborhoods";
 import type { FeatureValues } from "@/lib/validation";
+
+const MIN_ZOOM = 0.75;
+const MAX_ZOOM = 2;
+const ZOOM_STEP = 0.2;
+
+function clampZoom(zoom: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
+}
 
 export interface WorldSceneProps {
   /** Nilai 10 fitur dari form atau dock Sims. */
@@ -32,6 +40,116 @@ export interface WorldSceneProps {
 export function WorldScene({ values = {}, className = "" }: WorldSceneProps) {
   const titleId = useId();
   const descId = useId();
+
+  // 0. Kamera denah: zoom 0.75x–2.0x, pan saat diperbesar
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const [camera, setCamera] = useState({ zoom: 1, x: 0, y: 0 });
+  const [interacting, setInteracting] = useState(false);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+
+  const clampPan = useCallback((x: number, y: number, zoom: number) => {
+    if (zoom <= 1) return { x: 0, y: 0 };
+    const el = sceneRef.current;
+    if (!el) return { x, y };
+    const maxX = ((zoom - 1) * el.clientWidth) / 2;
+    const maxY = ((zoom - 1) * el.clientHeight) / 2;
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
+  }, []);
+
+  // Zoom dengan scroll wheel (listener native agar preventDefault bekerja)
+  useEffect(() => {
+    const el = sceneRef.current;
+    if (!el) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      setCamera((prev) => {
+        const factor = event.deltaY < 0 ? 1.12 : 0.9;
+        const zoom = clampZoom(prev.zoom * factor);
+        const pan = clampPan(prev.x, prev.y, zoom);
+        return { zoom, ...pan };
+      });
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [clampPan]);
+
+  const zoomBy = (delta: number) => {
+    setCamera((prev) => {
+      const zoom = clampZoom(prev.zoom + delta);
+      const pan = clampPan(prev.x, prev.y, zoom);
+      return { zoom, ...pan };
+    });
+  };
+
+  const resetCamera = () => setCamera({ zoom: 1, x: 0, y: 0 });
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointersRef.current.size === 2) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom: camera.zoom };
+      panStartRef.current = null;
+    } else if (pointersRef.current.size === 1) {
+      panStartRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        panX: camera.x,
+        panY: camera.y,
+      };
+    }
+    setInteracting(true);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const pointer = pointersRef.current.get(event.pointerId);
+    if (!pointer) return;
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+
+    if (pointersRef.current.size === 2 && pinchRef.current) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      const distance = Math.hypot(a.x - b.x, a.y - b.y);
+      const zoom = clampZoom(pinchRef.current.zoom * (distance / Math.max(1, pinchRef.current.dist)));
+      setCamera((prev) => {
+        const pan = clampPan(prev.x, prev.y, zoom);
+        return { zoom, ...pan };
+      });
+      return;
+    }
+
+    if (pointersRef.current.size === 1 && panStartRef.current && camera.zoom > 1) {
+      const next = clampPan(
+        panStartRef.current.panX + (event.clientX - panStartRef.current.x),
+        panStartRef.current.panY + (event.clientY - panStartRef.current.y),
+        camera.zoom,
+      );
+      setCamera((prev) => ({ ...prev, x: next.x, y: next.y }));
+    }
+  };
+
+  const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    pointersRef.current.delete(event.pointerId);
+
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+
+    if (pointersRef.current.size === 0) {
+      panStartRef.current = null;
+      setInteracting(false);
+    } else if (pointersRef.current.size === 1) {
+      const [a] = Array.from(pointersRef.current.values());
+      panStartRef.current = { x: a.x, y: a.y, panX: camera.x, panY: camera.y };
+    }
+  };
 
   // 1. Sanitasi nilai fitur
   const overallQual = Math.max(1, Math.min(10, Number(values.OverallQual ?? 6) || 6));
@@ -94,20 +212,34 @@ export function WorldScene({ values = {}, className = "" }: WorldSceneProps) {
 
   return (
     <div
-      className={`relative w-full h-full flex items-center justify-center select-none overflow-hidden bg-[#589C34] ${className}`}
+      className={`relative w-full h-full select-none overflow-hidden bg-[#589C34] ${className}`}
       style={{
-        backgroundImage:
-          "repeating-conic-gradient(#589C34 0% 25%, #5FA63A 0% 50%)",
-        backgroundSize: "56px 56px",
+        backgroundImage: "repeating-conic-gradient(#589C34 0% 25%, #5FA63A 0% 50%)",
+        backgroundSize: "32px 32px",
       }}
     >
-      <svg
-        role="img"
-        aria-labelledby={`${titleId} ${descId}`}
-        viewBox="0 0 1200 820"
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full h-full transition-all duration-500 ease-out"
+      <div
+        ref={sceneRef}
+        className={`absolute inset-0 overflow-hidden ${
+          camera.zoom > 1 ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
+        style={{ touchAction: "none" }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
       >
+        <svg
+          role="img"
+          aria-labelledby={`${titleId} ${descId}`}
+          viewBox="0 0 1200 820"
+          preserveAspectRatio="xMidYMid slice"
+          className="h-full w-full origin-center will-change-transform"
+          style={{
+            transform: `translate3d(${camera.x}px, ${camera.y}px, 0) scale(${camera.zoom})`,
+            transition: interacting ? "none" : "transform 140ms ease-out",
+          }}
+        >
         <title id={titleId}>Denah rumah interaktif Ames, Iowa</title>
         <desc id={descId}>
           Ilustrasi tampak atas properti di {neighborhoodName}. Kualitas {overallQual}/10, luas{" "}
@@ -438,9 +570,20 @@ export function WorldScene({ values = {}, className = "" }: WorldSceneProps) {
               strokeWidth="2.5"
               strokeDasharray="9,6"
             />
+            <rect
+              x={houseX - 8}
+              y={houseY - 32}
+              width={180}
+              height={20}
+              rx={10}
+              fill="#FFFFFF"
+              fillOpacity={0.92}
+              stroke="#0EA5E9"
+              strokeWidth={1}
+            />
             <text
               x={houseX}
-              y={houseY - 16}
+              y={houseY - 17}
               fill="#0D59A7"
               fontSize="11"
               fontFamily="Nunito, sans-serif"
@@ -920,6 +1063,38 @@ export function WorldScene({ values = {}, className = "" }: WorldSceneProps) {
           </g>
         </g>
       </svg>
+      </div>
+
+      {/* Kontrol zoom & reset kamera */}
+      <div className="absolute right-2.5 bottom-2.5 z-20 flex flex-col items-center gap-1">
+        <button
+          type="button"
+          onClick={() => zoomBy(ZOOM_STEP)}
+          className="sims-zoom-btn"
+          aria-label="Perbesar denah"
+          title="Perbesar denah"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={() => zoomBy(-ZOOM_STEP)}
+          className="sims-zoom-btn"
+          aria-label="Perkecil denah"
+          title="Perkecil denah"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={resetCamera}
+          className="sims-zoom-btn reset"
+          aria-label={`Reset zoom ke 100% dan posisi tengah (sekarang ${Math.round(camera.zoom * 100)}%)`}
+          title="Reset zoom & posisi ke tengah"
+        >
+          100%
+        </button>
+      </div>
     </div>
   );
 }

@@ -129,7 +129,7 @@ export function SimsApp() {
   }, [showToast]);
 
   return (
-    <div className="relative w-full h-[100dvh] overflow-hidden flex flex-col justify-between select-none sims-font-body bg-[#589C34] text-slate-800">
+    <div className="relative w-full h-dvh overflow-hidden overscroll-none flex flex-col justify-between select-none sims-font-body bg-[#589C34] text-slate-800">
       {/* ========================================================
           A. BANNER SERVER WARM-UP (COLD START)
           ======================================================== */}
@@ -137,7 +137,7 @@ export function SimsApp() {
         <div
           role="alert"
           aria-live="polite"
-          className={`w-full py-1.5 px-3 text-center text-[11px] sm:text-xs font-bold flex items-center justify-center gap-2 z-40 border-b-2 border-white ${
+          className={`w-full py-0.5 px-2 sm:px-3 text-center text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1.5 z-40 border-b-2 border-white ${
             phase === "loading"
               ? "bg-amber-200 text-amber-950"
               : "bg-rose-200 text-rose-950"
@@ -145,22 +145,20 @@ export function SimsApp() {
         >
           {phase === "loading" ? (
             <>
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping" />
-              <span>
-                {warming
-                  ? "Server sedang memuat model machine learning..."
-                  : "Server sedang bangun dari mode tidur (bisa 30–60 detik). Harap tunggu sebentar..."}
+              <span className="w-2 h-2 shrink-0 rounded-full bg-amber-600 animate-ping" />
+              <span className="truncate">
+                {warming ? "Memuat model ML…" : "Server bangun (30–60 dtk)…"}
               </span>
             </>
           ) : (
             <>
-              <span>⚠️ Server backend belum dapat dihubungi.</span>
+              <span className="truncate">⚠️ Server belum terhubung.</span>
               <button
                 type="button"
                 onClick={retryServer}
-                className="underline font-extrabold ml-1 hover:opacity-80"
+                className="shrink-0 underline font-extrabold hover:opacity-80"
               >
-                Coba hubungkan lagi
+                Coba lagi
               </button>
             </>
           )}
@@ -174,7 +172,6 @@ export function SimsApp() {
         predictedPrice={result?.predicted_price}
         priceRange={result?.price_range}
         grLivArea={Number(values.GrLivArea || 1500)}
-        overallQual={Number(values.OverallQual || 6)}
         modelInfo={modelInfo}
         isStale={isStale}
         isLoading={status === "loading"}
@@ -276,17 +273,6 @@ export function SimsApp() {
           onChange={(val) => handleFeatureChange("OverallQual", String(val))}
         />
 
-        {/* Acak / reset — kanan bawah */}
-        <button
-          type="button"
-          onClick={handleRandomize}
-          title="Acak karakteristik rumah"
-          aria-label="Acak karakteristik rumah"
-          className="sims-btn-round sims-btn-green absolute right-2.5 sm:right-4 bottom-2.5 sm:bottom-4 z-30 w-11 h-11 sm:w-12 sm:h-12 text-xl"
-        >
-          <span aria-hidden="true">↺</span>
-        </button>
-
         {/* Tombol coba lagi */}
         {status === "error" && (
           <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-30">
@@ -306,12 +292,17 @@ export function SimsApp() {
           D. BOTTOM BUILD DOCK + DISCLAIMER
           ======================================================== */}
       <footer className="w-full z-20 flex flex-col justify-end shrink-0">
-        <BuildDock values={values} fieldErrors={fieldErrors} onChange={handleFeatureChange} />
+        <BuildDock
+          values={values}
+          fieldErrors={fieldErrors}
+          onChange={handleFeatureChange}
+          onRandomize={handleRandomize}
+        />
 
         <div
           role="note"
           aria-label="Academic disclaimer"
-          className="w-full bg-white/95 py-1 px-3 text-center border-t border-sky-200"
+          className="w-full bg-white/95 pt-1 px-3 pb-safe text-center border-t border-sky-200"
         >
           <p className="text-[9px] sm:text-[10px] text-slate-600 sims-font-body tracking-wide leading-tight">
             <strong className="text-emerald-700 uppercase mr-1">Disclaimer:</strong>
